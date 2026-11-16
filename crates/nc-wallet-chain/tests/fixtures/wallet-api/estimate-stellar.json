@@ -1,0 +1,5 @@
+{
+  "network": "stellar",
+  "fee": { "asset": "XLM", "amount": "100", "decimals": 7 },
+  "recipient": { "exists": true, "trustline": false, "memo_required": false }
+}

@@ -1,0 +1,6 @@
+# The one Rust every build uses: local builds and CI.
+[toolchain]
+channel = "1.98.1"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

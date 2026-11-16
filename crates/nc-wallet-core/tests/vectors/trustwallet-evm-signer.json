@@ -1,0 +1,106 @@
+{
+ "_source": "trustwallet/wallet-core @ adf80f8bac989e18a4ef1922e2b9eaeb4bf804a9, rust/tw_evm/tests/signer.rs; the key, the expected raw transaction and the expected signing hash ('pre_hash') are read from the named test, the other fields transcribed from its input",
+ "cases": [
+  {
+   "test": "test_sign_transaction_non_typed_erc20_transfer",
+   "label": "legacy ERC-20 transfer, chain id 0x34, nonce 0",
+   "private_key": "4646464646464646464646464646464646464646464646464646464646464646",
+   "expected_raw": "f8ab808509c7652400830130b9946b175474e89094c44da98b954eedeac495271d0f80b844a9059cbb0000000000000000000000005322b34c88ed0691971bf52a7047448f0f4efc840000000000000000000000000000000000000000000000001bc16d674ec80000818ba0c34040ff76f6d5e397b54b47f7fa2b3a7213f3c2a39a750260211fa15249ae8aa01ac5061e9bcf05aebef461864662652f25c45ee99240e3bb91b31f456208a6cd",
+   "expected_signing_hash": "b3525019dc367d3ecac48905f9a95ff3550c25a24823db765f92cae2dec7ebfd",
+   "chain_id": 52,
+   "nonce": 0,
+   "gas_limit": 78009,
+   "gas_price": 42000000000,
+   "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+   "value": 0,
+   "token_call": {
+    "kind": "transfer",
+    "to": "0x5322b34c88ed0691971bf52a7047448f0f4efc84",
+    "amount": "2000000000000000000"
+   }
+  },
+  {
+   "test": "test_sign_transaction_non_typed_erc20_approve",
+   "label": "legacy ERC-20 approve, chain id 1",
+   "private_key": "608dcb1742bb3fb7aec002074e3420e4fab7d00cced79ccdac53ed5b27138151",
+   "expected_raw": "f8aa808509c7652400830130b9946b175474e89094c44da98b954eedeac495271d0f80b844095ea7b30000000000000000000000005322b34c88ed0691971bf52a7047448f0f4efc840000000000000000000000000000000000000000000000001bc16d674ec8000025a0d8136d66da1e0ba8c7208d5c4f143167f54b89a0fe2e23440653bcca28b34dc1a049222a79339f1a9e4641cb4ad805c49c225ae704299ffc10627bf41c035c464a",
+   "expected_signing_hash": "fe34a2b97f583db2d4baca3753f105d70dcf2d9800ddd0247900a026b9de6183",
+   "chain_id": 1,
+   "nonce": 0,
+   "gas_limit": 78009,
+   "gas_price": 42000000000,
+   "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+   "value": 0,
+   "token_call": {
+    "kind": "approve",
+    "to": "0x5322b34c88ed0691971bf52a7047448f0f4efc84",
+    "amount": "2000000000000000000"
+   }
+  },
+  {
+   "test": "test_sign_transaction_non_typed_native",
+   "label": "legacy native transfer (the EIP-155 example)",
+   "private_key": "4646464646464646464646464646464646464646464646464646464646464646",
+   "expected_raw": "f86c098504a817c800825208943535353535353535353535353535353535353535880de0b6b3a76400008025a028ef61340bd939bc2195fe537567866003e1a15d3c71ff63e1590620aa636276a067cbe9d8997f761aecb703304b3800ccf555c9f3dc64214b297fb1966a3b6d83",
+   "expected_signing_hash": "daf5a779ae972f972197303d7b574746c7ef83eadac0f2791ad23db92e4c8e53",
+   "chain_id": 1,
+   "nonce": 9,
+   "gas_limit": 21000,
+   "gas_price": 20000000000,
+   "to": "0x3535353535353535353535353535353535353535",
+   "value": 1000000000000000000
+  },
+  {
+   "test": "test_sign_transaction_eip1559_native_transfer",
+   "label": "EIP-1559 native transfer, chain id 3",
+   "private_key": "4f96ed80e9a7555a6f74b3d658afdd9c756b0a40d4ca30c42c2039eb449bb904",
+   "expected_raw": "02f8710306847735940084b2d05e0082526c94b9f5771c27664bf2282d98e09d7f50cec7cb01a78701ee0c29f50cb180c080a092c336138f7d0231fe9422bb30ee9ef10bf222761fe9e04442e3a11e88880c64a06487026011dae03dc281bc21c7d7ede5c2226d197befb813a4ecad686b559e58",
+   "expected_signing_hash": "6468eb103d51c9a683b51818fdb73390151c9973831d2cfb4e9587ad54273155",
+   "chain_id": 3,
+   "nonce": 6,
+   "gas_limit": 21100,
+   "max_priority_fee_per_gas": 2000000000,
+   "max_fee_per_gas": 3000000000,
+   "to": "0xB9F5771C27664bF2282D98E09D7F50cEc7cB01a7",
+   "value": 543210987654321
+  },
+  {
+   "test": "test_sign_transaction_eip1559_erc20_transfer",
+   "label": "EIP-1559 ERC-20 transfer",
+   "private_key": "608dcb1742bb3fb7aec002074e3420e4fab7d00cced79ccdac53ed5b27138151",
+   "expected_raw": "02f8b00180847735940084b2d05e00830130b9946b175474e89094c44da98b954eedeac495271d0f80b844a9059cbb0000000000000000000000005322b34c88ed0691971bf52a7047448f0f4efc840000000000000000000000000000000000000000000000001bc16d674ec80000c080a0adfcfdf98d4ed35a8967a0c1d78b42adb7c5d831cf5a3272654ec8f8bcd7be2ea011641e065684f6aa476f4fd250aa46cd0b44eccdb0a6e1650d658d1998684cdf",
+   "expected_signing_hash": "aa0ec30afa12acb48a080aa7157254193eeb2a4d248538b0747535baab98141f",
+   "chain_id": 1,
+   "nonce": 0,
+   "gas_limit": 78009,
+   "max_priority_fee_per_gas": 2000000000,
+   "max_fee_per_gas": 3000000000,
+   "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+   "value": 0,
+   "token_call": {
+    "kind": "transfer",
+    "to": "0x5322b34c88ed0691971bf52a7047448f0f4efc84",
+    "amount": "2000000000000000000"
+   }
+  },
+  {
+   "test": "test_sign_transaction_eip1559_erc20_approve",
+   "label": "EIP-1559 ERC-20 approve",
+   "private_key": "608dcb1742bb3fb7aec002074e3420e4fab7d00cced79ccdac53ed5b27138151",
+   "expected_raw": "02f8b00180847735940084b2d05e00830130b9946b175474e89094c44da98b954eedeac495271d0f80b844095ea7b30000000000000000000000005322b34c88ed0691971bf52a7047448f0f4efc840000000000000000000000000000000000000000000000001bc16d674ec80000c080a05a43dda3dc193480ee532a5ed67ba8fbd2e3afb9eee218f4fb955b415d592925a01300e5b5f51c8cd5bf80f018cea3fb347fae589e65355068ac44ffc996313c60",
+   "expected_signing_hash": "bed87d402cc536fac3dbb346eac221f5ee783e04f0a7e3713817e55a78d08065",
+   "chain_id": 1,
+   "nonce": 0,
+   "gas_limit": 78009,
+   "max_priority_fee_per_gas": 2000000000,
+   "max_fee_per_gas": 3000000000,
+   "to": "0x6b175474e89094c44da98b954eedeac495271d0f",
+   "value": 0,
+   "token_call": {
+    "kind": "approve",
+    "to": "0x5322b34c88ed0691971bf52a7047448f0f4efc84",
+    "amount": "2000000000000000000"
+   }
+  }
+ ]
+}

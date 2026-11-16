@@ -1,0 +1,39 @@
+{
+  "networks": [
+    {
+      "id": "ethereum",
+      "name": "Ethereum",
+      "family": "evm",
+      "caip2": "eip155:1",
+      "native": { "symbol": "ETH", "name": "Ethereum", "decimals": 18 },
+      "tokens": [
+        { "symbol": "USDT", "name": "Tether USD", "decimals": 6, "kind": "erc20",
+          "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7" },
+        { "symbol": "USDC", "name": "USD Coin", "decimals": 6, "kind": "erc20",
+          "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }
+      ],
+      "explorer": {
+        "transaction": "https://etherscan.io/tx/{hash}",
+        "address": "https://etherscan.io/address/{address}"
+      },
+      "confirmations": 24,
+      "history_available": true,
+      "chain_id": 1
+    },
+    {
+      "id": "bittensor",
+      "name": "Bittensor",
+      "family": "substrate",
+      "caip2": "polkadot:2f0555cc76fc2840a25a6ea3b9637146",
+      "native": { "symbol": "TAO", "name": "Bittensor", "decimals": 9 },
+      "tokens": [],
+      "explorer": {
+        "transaction": "https://taostats.io/extrinsic/{hash}",
+        "address": "https://taostats.io/account/{address}"
+      },
+      "confirmations": 1,
+      "history_available": true,
+      "ss58": 42
+    }
+  ]
+}

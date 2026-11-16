@@ -1,0 +1,6 @@
+{
+  "prices": {
+    "BTC":  { "usd": "96543.12345678", "change_24h": "1.23", "updated_at": "2026-10-26T21:06:00Z", "stale": false },
+    "USDT": { "usd": "1.00000000", "change_24h": null, "updated_at": null, "stale": false }
+  }
+}

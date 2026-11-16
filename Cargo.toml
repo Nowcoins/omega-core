@@ -1,0 +1,173 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/nc-wallet-core",
+    "crates/nc-wallet-chain",
+    "crates/nc-wallet-session",
+    "crates/nc-wallet-ffi",
+    "crates/nc-wallet-wasm",
+]
+
+[workspace.package]
+version = "1.0.2"
+edition = "2024"
+rust-version = "1.98"
+license = "Apache-2.0"
+publish = false
+authors = ["Nowcoin"]
+repository = "https://github.com/Nowcoins/omega-core"
+homepage = "https://nowcoin.xyz"
+
+[workspace.dependencies]
+# ---- the engine's own crates ----
+nc-wallet-core    = { path = "crates/nc-wallet-core" }
+nc-wallet-chain   = { path = "crates/nc-wallet-chain" }
+nc-wallet-session = { path = "crates/nc-wallet-session" }
+nc-wallet-ffi     = { path = "crates/nc-wallet-ffi" }
+
+# ---- async (the native transport and the tests) ----
+tokio   = { version = "1.47", features = ["full"] }
+futures = "0.3"
+
+# ---- serialization and encodings ----
+serde_json = { version = "1", features = ["raw_value", "preserve_order"] }
+hex        = "0.4"
+base64     = "0.22"
+bs58       = "0.5"
+bech32     = "0.11"
+stellar-strkey = "0.0.18"
+
+# ---- errors ----
+thiserror = "2"
+
+# ---- cryptography ----
+sha2             = "0.10"
+sha3             = "0.10"
+ripemd           = "0.1"
+blake2           = "0.10"
+hmac             = "0.12"
+blake3           = "1"
+# The tests check signatures with the 0.13 line of k256, independently of the
+# signing path. nc-wallet-core itself names k256 0.14 in its own manifest: bip32
+# 0.6 is built on k256 0.14 and so on crypto-bigint 0.7, whose arithmetic is
+# constant-time (RUSTSEC-2026-0387 is fixed from crypto-bigint 0.7.6, and there
+# is no fix on the 0.5 line that k256 0.13 uses). tests/dependencies.rs in
+# nc-wallet-core keeps it that way.
+k256             = { version = "0.13", features = ["ecdsa", "arithmetic"] }
+ed25519-dalek    = { version = "2", features = ["rand_core"] }
+curve25519-dalek = "4"
+rand_core        = "0.6"
+# sr25519 (Schnorr over Ristretto): the Substrate default, and what a Bittensor
+# wallet made by btcli or polkadot.js usually is.
+schnorrkel       = "0.11"
+# BIP-39 recovery phrases (English, checksummed).
+bip39            = { version = "2.2", default-features = false, features = ["std", "zeroize"] }
+# The price of bip32 0.6 is a second copy of sha2, hmac and ripemd (0.11, 0.13,
+# 0.2) beside the 0.10 generation named here; they are bip32's own. getrandom is
+# 0.2 to match rand_core 0.6; nc-wallet-core turns its "js" feature on for
+# wasm32-unknown-unknown only.
+bip32            = { version = "0.6", default-features = false, features = ["alloc", "secp256k1"] }
+substrate-bip39  = "0.6.1"
+getrandom        = "0.2"
+argon2           = "0.5"
+# The vault: AES-256-GCM, on the same RustCrypto generation as sha2 0.10 above
+# (aes-gcm 0.11 moves to digest 0.11).
+aes-gcm          = { version = "0.10.3", default-features = false, features = ["aes", "alloc"] }
+# NFKD for the vault password, so one password typed through two keyboards
+# (precomposed and decomposed forms) opens the same vault.
+unicode-normalization = "0.1"
+zeroize          = { version = "1", features = ["derive"] }
+
+# ---- the Android bridge ----
+# nc-wallet-ffi. The Rust crate, the Dart package and the code generator
+# (`cargo install flutter_rust_bridge_codegen --locked`) must be the same version.
+flutter_rust_bridge = "=2.13.0"
+
+# ---- the browser build (WebAssembly) ----
+# nc-wallet-wasm. The crate and the `wasm-bindgen` command-line tool that writes
+# the JavaScript around the .wasm must be the same version, exactly:
+# `cargo install wasm-bindgen-cli --version 0.2.129 --locked`. js-sys 0.3.106 is
+# the release made with wasm-bindgen 0.2.129.
+wasm-bindgen         = "=0.2.129"
+js-sys               = "=0.3.106"
+wasm-bindgen-test    = "=0.3.79"
+wasm-bindgen-futures = "=0.4.79"
+
+[workspace.lints.rust]
+unsafe_code              = "deny"
+missing_debug_implementations = "warn"
+rust_2018_idioms         = { level = "warn", priority = -1 }
+unreachable_pub          = "warn"
+unused_qualifications    = "warn"
+
+[workspace.lints.clippy]
+all                      = { level = "warn", priority = -1 }
+pedantic                 = { level = "warn", priority = -1 }
+module_name_repetitions  = "allow"
+must_use_candidate       = "allow"
+missing_errors_doc       = "allow"
+missing_panics_doc       = "allow"
+too_many_lines           = "allow"
+similar_names            = "allow"
+struct_excessive_bools   = "allow"
+# Code that moves money: these are real bugs, not style.
+float_arithmetic         = "deny"
+lossy_float_literal      = "deny"
+unwrap_used              = "deny"
+panic                    = "deny"
+arithmetic_side_effects  = "allow"
+integer_division         = "allow"
+indexing_slicing         = "allow"
+expect_used              = "allow"
+
+[profile.dev]
+opt-level = 0
+debug = 1
+split-debuginfo = "unpacked"
+
+# Dependencies are compiled with optimisation even in dev: the key derivation
+# and Argon2id paths are unusably slow otherwise, and they are rebuilt rarely.
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
+
+[profile.test]
+inherits = "dev"
+opt-level = 1
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "unwind"
+debug = 1
+strip = "debuginfo"
+overflow-checks = true
+
+# nc-wallet-wasm, the browser build. Speed matters, because Argon2id at 64 MiB
+# is what an unlock waits for, so opt-level stays 3; the size comes from fat LTO
+# and no unwinding or debug info. Overflow checks stay on, as in release.
+[profile.release-wasm]
+inherits = "release"
+lto = "fat"
+panic = "abort"
+debug = 0
+strip = true
+
+# nc-wallet-ffi, the Android library. `panic` stays "unwind": flutter_rust_bridge
+# catches a panic at the boundary and turns it into an error for Dart.
+#
+# opt-level stays 3. "s" makes the library 7 to 9 percent smaller (arm64-v8a
+# 1.33 MB against 1.43 MB) but an unlock (Argon2id, 64 MiB, 3 passes) takes 1.6
+# times as long (about 300 ms against 185 ms). Keeping `argon2` and `blake2` at
+# opt-level 3 by a package override does not help under fat LTO (the merged
+# module is optimised at the root's level). So the whole library is built for
+# speed.
+[profile.wallet-release]
+inherits = "release"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"
+debug = 0
+strip = true

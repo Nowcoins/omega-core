@@ -1,0 +1,5 @@
+{
+  "code": "rejected",
+  "message": "intrinsic gas too low",
+  "retryable": false
+}

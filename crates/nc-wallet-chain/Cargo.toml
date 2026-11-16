@@ -1,0 +1,49 @@
+[package]
+name = "nc-wallet-chain"
+description = "Nowcoin Omega's chain access: balances, the inputs a send needs, fee estimates, broadcast, prices and history, read straight from public endpoints on the device. No Nowcoin server, no API key. Builds for Android and WebAssembly."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# `testing`: a platform that replays recorded answers on a clock the test moves,
+# and a recorder that makes the recordings from the live endpoints. For the tests
+# of this crate and of the crates that wrap it; never in a shipped build.
+testing = []
+
+[dependencies]
+# Addresses, ABI words, Bitcoin scripts and sizes, Solana derived addresses:
+# the same code that signs, so what is asked of the chain is what is signed.
+nc-wallet-core = { workspace = true }
+serde_json = { workspace = true }
+# `join_all` and friends: the calls of one request run side by side.
+futures = { workspace = true }
+hex = { workspace = true }
+base64 = { workspace = true }
+bs58 = { workspace = true }
+sha2 = { workspace = true }
+sha3 = { workspace = true }
+blake2 = { workspace = true }
+# History at rest is sealed by the engine; this crate only frames bytes.
+zeroize = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# The Android (and host) transport: rustls with the bundled roots, so the
+# phone's certificate store and its JNI are not involved. Under WebAssembly the
+# host (the extension's service worker) supplies the browser's `fetch`.
+# No default features and no `json`: the answers are parsed here. `gzip` and
+# `http2` keep the bytes and the handshakes of a refresh down.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip", "http2"] }
+tokio = { workspace = true, features = ["time"] }
+
+[dev-dependencies]
+nc-wallet-chain = { path = ".", features = ["testing"] }
+hex = { workspace = true }
+# The live smoke (examples/live_smoke.rs) and the fixture recorder run on the
+# host only, against the real endpoints, read-only, never in a test.
+tokio = { workspace = true }
+
+[lints]
+workspace = true

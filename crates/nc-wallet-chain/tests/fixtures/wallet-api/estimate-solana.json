@@ -1,0 +1,10 @@
+{
+  "network": "solana",
+  "fee": { "asset": "SOL", "amount": "5200", "decimals": 9 },
+  "base_fee": "5000",
+  "priority_fee": "200",
+  "compute_unit_limit": 1000,
+  "compute_unit_price_micro_lamports": "200000",
+  "account_creation": "0",
+  "recipient": { "exists": true }
+}

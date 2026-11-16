@@ -1,0 +1,18 @@
+# Enums of networks, assets and request kinds are legitimately large.
+enum-variant-size-threshold = 512
+too-many-arguments-threshold = 10
+type-complexity-threshold = 500
+disallowed-methods = [
+    { path = "std::time::SystemTime::now", reason = "take the time from the platform, so tests can move the clock" },
+]
+disallowed-types = [
+    { path = "f32", reason = "never represent amounts or fees as floating point" },
+    { path = "f64", reason = "never represent amounts or fees as floating point" },
+]
+
+# Proper nouns that read worse in backticks than in prose.
+# `".."` extends clippy's default list rather than replacing it.
+doc-valid-idents = [
+    "..",
+    "PoS", "TronGrid", "MetaMask", "WalletConnect", "Bittensor", "Subtensor",
+]

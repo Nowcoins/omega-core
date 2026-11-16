@@ -1,0 +1,61 @@
+{
+ "_about": "Balances.transfer_keep_alive extrinsics (sr25519, mortal era) as included on Bittensor mainnet (Finney), read on 2026-10-26 from https://entrypoint-finney.opentensor.ai:443 with chain_getFinalizedHead, chain_getBlockHash, chain_getBlock (the extrinsic, as the block lists it) and state_getRuntimeVersion (at the including block). birth_block is the era's birth block, worked out from the era bytes in the extrinsic and the including block's number by sp-runtime's Era::birth; birth_hash is chain_getBlockHash(birth_block). Nothing here is produced by nc-wallet-core. The signature of each extrinsic verifies, under sr25519 with the 'substrate' context, over call || extra || additional, where additional holds the spec version, transaction version, genesis hash and the era's birth block hash.",
+ "genesis_hash": "0x2f0555cc76fc2840a25a6ea3b9637146806f1f44b090c175ffde2a7e5ab36c03",
+ "extrinsics": [
+  {
+   "extrinsic": "0x410284005e07114bf88b57a45a8ce0fdfb6d5d2963b216937421f3d50f18a9e3bbafb442017cedea1268aef3de2a05335037097ed88dd4d38f5d95b0c9a2c4ac8449294156fd44ba69698e318ecfcc248740c5a1d3509565f21cf32f4dea7864c53c20ef8566066d0c00000503006a7f6c346c10d4e1eb397558e1116f27944f95cf24014cefa8a04b3899ba1122025a6202",
+   "birth_block": 9369958,
+   "birth_hash": "0x9c9cfb967489c211c76ec982c92eee18bd86e8434a3f5f3c91b5d66ee7638fa5",
+   "spec_version": 486,
+   "transaction_version": 1,
+   "block_number": 9369961,
+   "block_hash": "0x372029ed4756fd70bfb8a333d46ffe90d7e72877d67fabe0a5a6145f2de1a396",
+   "extrinsic_index": 23
+  },
+  {
+   "extrinsic": "0x410284005e07114bf88b57a45a8ce0fdfb6d5d2963b216937421f3d50f18a9e3bbafb4420110a56800aae193315ccd14c1493d036248f1bb1cd204a3a79e5677a8b662f430334b6948d1928eaa9ecacb86d1d47917f0ba11977b587af40bdaa30350b0a889f605650c000005030042210e5df2b1efb8f227a93aeffdeb5650fc533d7277e87cdd1f603caab57821025a6202",
+   "birth_block": 9369951,
+   "birth_hash": "0xca89945ee330badbfb9a16259bf122b69f24482e0feb195f964c5ddb867220d6",
+   "spec_version": 486,
+   "transaction_version": 1,
+   "block_number": 9369955,
+   "block_hash": "0x6675531a0c5b88f115ae320e21d8cecd9558e99b1117effa12a41cefdad01eac",
+   "extrinsic_index": 7
+  },
+  {
+   "extrinsic": "0x3d028400a64b3a09ff8d40ac639e319e1146e26267b26b79e0c0f7d1bf6b09fb26bee326016e00e869d0e4f852701a5ef1a493687b0eba4a634c6dda817fc75b32ee06d80f0c9def670f583c6e0c032e0fae5896ba6f7e5c1261523e0e290368b86f390f890502b80000050300e02bb91e11ffa2996bcf620db3a7b03799aff9eac184220a57d7907145af987d3271d217",
+   "birth_block": 9369952,
+   "birth_hash": "0x99b875accfa3bf7a3b4c1b561ca1753a8951f978466839913872f4c3e49af42e",
+   "spec_version": 486,
+   "transaction_version": 1,
+   "block_number": 9369953,
+   "block_hash": "0x099390fe4e18adb892f105a8e5ab84dccf4c5b06c620540070043280fac30ec7",
+   "extrinsic_index": 29
+  },
+  {
+   "extrinsic": "0x410284006c815e7be2c8efd0d680c8e8e8a5e19b5aad136550b12d9021c32743e0c4e807016295d1fd47a17d239f55a0ad10a57f121aa84f6dc0850eb743e443a93ea2a610c8148f4f1dbabb60e04264f5f0092cd0a387f04edbf1d298e24fcde4cb0c0c8a0502b9050000050300e02bb91e11ffa2996bcf620db3a7b03799aff9eac184220a57d7907145af987d2e71d217",
+   "birth_block": 9369952,
+   "birth_hash": "0x99b875accfa3bf7a3b4c1b561ca1753a8951f978466839913872f4c3e49af42e",
+   "spec_version": 486,
+   "transaction_version": 1,
+   "block_number": 9369953,
+   "block_hash": "0x099390fe4e18adb892f105a8e5ab84dccf4c5b06c620540070043280fac30ec7",
+   "extrinsic_index": 30
+  }
+ ],
+ "header_of_first_block": {
+  "block_hash": "0x372029ed4756fd70bfb8a333d46ffe90d7e72877d67fabe0a5a6145f2de1a396",
+  "parentHash": "0x8a21f1b6a4ea7a7d65dca60689790223b32b4566092f93d47a0ac0b0dd99e2b7",
+  "number": "0x8ef969",
+  "stateRoot": "0x3abc1a872807b4cf2bf568682eae65b65847f4025294b44cd4307acd937ee84d",
+  "extrinsicsRoot": "0x904815bff0052cd8d2da7e6bd1d7ecb2a3515c06fb3dd57d9c008372fea806b0",
+  "digest": {
+   "logs": [
+    "0x066175726120e4f8e70800000000",
+    "0x0466726f6e8901011ce3bdc1e4e01626fafc264f5ff3b4449c78f6c0b4229d75b3e606d40f97ad720866657e3485450949ae4096434c8a241b99d1e9c62fd5368cc4746d742b70e747e4d8ed1a041246da4b6888309d06de62591059e7f176dd965fb49bdeb2f430e5",
+    "0x05617572610101f0bd04e5a9f1861ef4ef92089c624678816f8746f98afe810a0d50bd0fe3202bc4f16b4052fc497947b1b9abc88e81b84912f1154ac28d3ec4e5fd1ec76c658a"
+   ]
+  },
+  "_about": "chain_getHeader at block_hash, same day; the block hash is BLAKE2-256 of the SCALE-encoded header."
+ }
+}

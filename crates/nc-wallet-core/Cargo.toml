@@ -1,0 +1,66 @@
+[package]
+name = "nc-wallet-core"
+description = "The signing core of Nowcoin Omega: recovery phrases, key derivation and addresses. No I/O, no async; builds for Android and WebAssembly."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# Recovery phrases (BIP-39, English) and BIP-32 over secp256k1.
+bip39 = { workspace = true }
+bip32 = { workspace = true }
+# secp256k1 / ed25519 / sr25519 keys. k256 is 0.14 here, not the workspace's 0.13 (see bip32 in the
+# root manifest), and without its default features: `std` switches on its operating-system randomness,
+# which is getrandom 0.4, and that does not build for wasm32-unknown-unknown without a second browser
+# shim. Nothing here asks k256 for a random number (ECDSA is RFC 6979, deterministic). `std` is also
+# what the precomputed base-point tables need; without them a derivation still takes about 0.6 ms.
+k256 = { version = "0.14", default-features = false, features = ["arithmetic", "ecdsa"] }
+ed25519-dalek = { workspace = true }
+# Whether a program-derived address is off the ed25519 curve.
+curve25519-dalek = { workspace = true }
+schnorrkel = { workspace = true }
+# Substrate's phrase-entropy to mini-secret step (Bittensor).
+substrate-bip39 = { workspace = true }
+# SLIP-10 (ed25519) is HMAC-SHA512 over the BIP-39 seed.
+hmac = { workspace = true }
+sha2 = { workspace = true }
+# Address hashes and encodings.
+sha3 = { workspace = true }
+ripemd = { workspace = true }
+blake2 = { workspace = true }
+bs58 = { workspace = true, features = ["check"] }
+bech32 = { workspace = true }
+stellar-strkey = { workspace = true }
+# Stellar envelopes travel as base64 (Horizon takes them that way).
+base64 = { workspace = true }
+# sr25519 signing takes its randomness from the core's own source: schnorrkel
+# draws from a `rand_core` generator, which this crate supplies.
+rand_core = { workspace = true }
+# The vault: the phrase sealed under a password with Argon2id and AES-256-GCM.
+argon2 = { workspace = true, features = ["alloc", "zeroize"] }
+aes-gcm = { workspace = true }
+unicode-normalization = { workspace = true }
+# Secret hygiene.
+zeroize = { workspace = true }
+thiserror = { workspace = true }
+# EIP-712 typed data arrives as JSON.
+serde_json = { workspace = true }
+# Randomness for new phrases: the operating system's source (the browser's
+# crypto on wasm, below). No fallback to anything weaker.
+getrandom = { workspace = true }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+# On wasm32-unknown-unknown getrandom has no source of its own: without this
+# feature the build fails, which is the point. With it, randomness is the
+# browser's `crypto.getRandomValues`.
+getrandom = { workspace = true, features = ["js"] }
+
+[dev-dependencies]
+hex = { workspace = true }
+# The hash Solana's own message test pins (BLAKE3 under a domain prefix).
+blake3 = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,55 @@
+[package]
+name = "nc-wallet-wasm"
+description = "Nowcoin Omega's session engine as WebAssembly, for the Chrome extension's service worker (wasm-bindgen). Secrets stay in WebAssembly memory."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+# cdylib: the .wasm the extension loads. rlib: this crate's host tests and the
+# cross-format checks against the native build.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+nc-wallet-session = { workspace = true }
+nc-wallet-core = { workspace = true }
+# The chain client: the extension reads the networks' public endpoints from the
+# browser through it, with no Nowcoin server. It is given the browser's `fetch`.
+nc-wallet-chain = { workspace = true }
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+js-sys = { workspace = true }
+# The answers that are lists of records (accounts, quiz, phrase check) go to
+# JavaScript as JSON text: no second serialisation library is needed.
+serde_json = { workspace = true }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+nc-wallet-chain = { workspace = true, features = ["testing"] }
+wasm-bindgen-test = { workspace = true }
+hex = { workspace = true }
+
+[lints.rust]
+# wasm-bindgen's macros expand to unsafe glue; nothing in this crate is unsafe.
+unsafe_code = "deny"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unreachable_pub = "warn"
+unused_qualifications = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+too_many_lines = "allow"
+similar_names = "allow"
+unwrap_used = "deny"
+panic = "deny"
+expect_used = "allow"
+# wasm-bindgen exports take owned Strings and Vecs by value.
+needless_pass_by_value = "allow"

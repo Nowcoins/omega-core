@@ -1,0 +1,8 @@
+{
+  "code": "duplicate",
+  "message": "the network already has this transaction",
+  "retryable": false,
+  "details": {
+    "hash": "0x316a268da99f8a8e28c851548d3f20080e8f030e8c15811bf161dd32fc43db5f"
+  }
+}

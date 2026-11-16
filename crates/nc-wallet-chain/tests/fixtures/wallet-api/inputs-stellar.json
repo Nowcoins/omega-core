@@ -1,0 +1,13 @@
+{
+  "network": "stellar",
+  "address": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "account_exists": true,
+  "sequence": "144373126631784461",
+  "base_fee": "100",
+  "balance": "320999354850",
+  "min_balance": "40000000",
+  "trustlines": [
+    { "code": "USDC", "issuer": "GA5Z…", "balance": "500000000", "limit": "9223372036854775807" }
+  ],
+  "server_time": 1793058206
+}

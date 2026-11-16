@@ -1,0 +1,300 @@
+{
+ "_about": "Transactions on the Stellar public network, read on 2026-10-26 from https://horizon.stellar.org: GET /transactions/{hash} (the fields kept are Horizon's own, 'envelope_xdr' and 'signatures' as the network recorded them, 'hash' the transaction's id, 'max_fee' its fee, 'source_account_sequence' the sequence number it used, 'preconditions.timebounds', 'memo_type' and 'memo') and GET /transactions/{hash}/operations (the operation, as Horizon reads it). Each is a single-operation transaction from its source account, signed by that account alone, with time bounds. Nothing here is produced by nc-wallet-core. The hash is the SHA-256 of the public network's id, the envelope type and the transaction's XDR; the signature verifies over that hash.",
+ "transactions": {
+  "usdc:none": {
+   "transaction": {
+    "hash": "a2854a78247bd08a425cf79254654488f7f56be4136f274494cf82f515bd0544",
+    "ledger": 65151630,
+    "created_at": "2026-10-26T19:45:33Z",
+    "source_account": "GBKQLNTTILP3YQDAYZZRYOOQYGTHTDJQMQQBMNSQ6VBOP3NCEPQNOMEN",
+    "fee_account": "GBKQLNTTILP3YQDAYZZRYOOQYGTHTDJQMQQBMNSQ6VBOP3NCEPQNOMEN",
+    "fee_charged": "100",
+    "max_fee": "100",
+    "operation_count": 1,
+    "memo_type": "none",
+    "envelope_xdr": "AAAAAgAAAABVBbZzQt+8QGDGcxw50MGmeY0wZCAWNlD1QuftoiPg1wAAAGQDrXskAAKGWQAAAAEAAAAAAAAAAAAAAABq368EAAAAAAAAAAEAAAAAAAAAAQAAAAAupGTOzyCkHGYVpJd4rsIl6mn8MlqfL0wufx/CCbkc3AAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAMWZ8AAAAAAAAAAAaIj4NcAAABAseq6zhq0mxdfNmz3ORK4yrgDzDzq4aUUS/6QeM1dp2Nzx16RvCFepC2R2uNSdjMjQ7QP/QcD0+rVTH/vdZO3Dw==",
+    "signatures": [
+     "seq6zhq0mxdfNmz3ORK4yrgDzDzq4aUUS/6QeM1dp2Nzx16RvCFepC2R2uNSdjMjQ7QP/QcD0+rVTH/vdZO3Dw=="
+    ],
+    "successful": true,
+    "source_account_sequence": "265003347633931865",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "0",
+      "max_time": "1793044228"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "279824120131162113",
+     "paging_token": "279824120131162113",
+     "transaction_successful": true,
+     "source_account": "GBKQLNTTILP3YQDAYZZRYOOQYGTHTDJQMQQBMNSQ6VBOP3NCEPQNOMEN",
+     "type": "payment",
+     "type_i": 1,
+     "created_at": "2026-10-26T19:45:33Z",
+     "transaction_hash": "a2854a78247bd08a425cf79254654488f7f56be4136f274494cf82f515bd0544",
+     "asset_type": "credit_alphanum4",
+     "asset_code": "USDC",
+     "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+     "from": "GBKQLNTTILP3YQDAYZZRYOOQYGTHTDJQMQQBMNSQ6VBOP3NCEPQNOMEN",
+     "to": "GAXKIZGOZ4QKIHDGCWSJO6FOYIS6U2P4GJNJ6L2MFZ7R7QQJXEONYYVT",
+     "amount": "5.1800000"
+    }
+   ]
+  },
+  "xlm:none": {
+   "transaction": {
+    "hash": "e3ad7154e96687f5f1686f06912d845cc02f3c7602afd5dc6ea3e12a3ccef56a",
+    "ledger": 65151629,
+    "created_at": "2026-10-26T19:45:28Z",
+    "source_account": "GDZCZGRPAKNOFJVQJIOWQTXY2RGWAMMGNQPCL2NFKKZSOQYPUBWS32HV",
+    "fee_account": "GDZCZGRPAKNOFJVQJIOWQTXY2RGWAMMGNQPCL2NFKKZSOQYPUBWS32HV",
+    "fee_charged": "100",
+    "max_fee": "1000",
+    "operation_count": 1,
+    "memo_type": "none",
+    "envelope_xdr": "AAAAAgAAAADyLJovApriprBKHWhO+NRNYDGGbB4l6aVSsydDD6BtLQAAA+gD4iKMAAAAAQAAAAEAAAAAAAAAAAAAAABq368BAAAAAAAAAAEAAAAAAAAAAQAAAAAhvJ4UFMSP/+21YQ4IeeTubiW0Wo7GsvMDXtkJmfg5TQAAAAAAAAAAAAAD6AAAAAAAAAABD6BtLQAAAECfhRnwalfhvDgW7OGcaMHCDe03CVS6gsfTAu5/kVGkdun2FVqUNhnUYH8Hv6a9V9C3Cxsy8ZxvHTNaTKEThNIL",
+    "signatures": [
+     "n4UZ8GpX4bw4FuzhnGjBwg3tNwlUuoLH0wLuf5FRpHbp9hValDYZ1GB/B7+mvVfQtwsbMvGcbx0zWkyhE4TSCw=="
+    ],
+    "successful": true,
+    "source_account_sequence": "279824111541157889",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "0",
+      "max_time": "1793044225"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "279824115836768257",
+     "paging_token": "279824115836768257",
+     "transaction_successful": true,
+     "source_account": "GDZCZGRPAKNOFJVQJIOWQTXY2RGWAMMGNQPCL2NFKKZSOQYPUBWS32HV",
+     "type": "payment",
+     "type_i": 1,
+     "created_at": "2026-10-26T19:45:28Z",
+     "transaction_hash": "e3ad7154e96687f5f1686f06912d845cc02f3c7602afd5dc6ea3e12a3ccef56a",
+     "asset_type": "native",
+     "from": "GDZCZGRPAKNOFJVQJIOWQTXY2RGWAMMGNQPCL2NFKKZSOQYPUBWS32HV",
+     "to": "GAQ3ZHQUCTCI777NWVQQ4CDZ4TXG4JNULKHMNMXTANPNSCMZ7A4U3DU2",
+     "amount": "0.0001000"
+    }
+   ]
+  },
+  "xlm:text": {
+   "transaction": {
+    "hash": "c8650558aa8375fc632790e5f4603edceae1be83ea70ee237dc77ded619cbb05",
+    "ledger": 65151629,
+    "created_at": "2026-10-26T19:45:28Z",
+    "source_account": "GA64SBILPUJBXPJOXGPJ6INGK2FMY425ZVMHN6S5QS2MU2URFUZHD7RC",
+    "fee_account": "GA64SBILPUJBXPJOXGPJ6INGK2FMY425ZVMHN6S5QS2MU2URFUZHD7RC",
+    "fee_charged": "100",
+    "max_fee": "100",
+    "operation_count": 1,
+    "memo_type": "text",
+    "memo": "undefined",
+    "envelope_xdr": "AAAAAgAAAAA9yQULfRIbvS65np8hplaKzHNdzVh2+l2EtMpqkS0ycQAAAGQD4iKMAAAAAQAAAAEAAAAAAAAAAAAAAABq363zAAAAAQAAAAl1bmRlZmluZWQAAAAAAAABAAAAAAAAAAEAAAAANaYd9qOGPBZQZDaPBSA5EiGsj3IwbsX8+taHbxXanyQAAAAAAAAAAAAAJxAAAAAAAAAAAZEtMnEAAABAdtpAVdmuaSdO/2TR0PtvpuBT0IEpUSOha/VaGmyW2QK4h0wKY08+q1n5iHkCD0PLwtuZlT6PtJe+qvNoVbulCg==",
+    "signatures": [
+     "dtpAVdmuaSdO/2TR0PtvpuBT0IEpUSOha/VaGmyW2QK4h0wKY08+q1n5iHkCD0PLwtuZlT6PtJe+qvNoVbulCg=="
+    ],
+    "successful": true,
+    "source_account_sequence": "279824111541157889",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "0",
+      "max_time": "1793043955"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "279824115836604417",
+     "paging_token": "279824115836604417",
+     "transaction_successful": true,
+     "source_account": "GA64SBILPUJBXPJOXGPJ6INGK2FMY425ZVMHN6S5QS2MU2URFUZHD7RC",
+     "type": "payment",
+     "type_i": 1,
+     "created_at": "2026-10-26T19:45:28Z",
+     "transaction_hash": "c8650558aa8375fc632790e5f4603edceae1be83ea70ee237dc77ded619cbb05",
+     "asset_type": "native",
+     "from": "GA64SBILPUJBXPJOXGPJ6INGK2FMY425ZVMHN6S5QS2MU2URFUZHD7RC",
+     "to": "GA22MHPWUODDYFSQMQ3I6BJAHEJCDLEPOIYG5RP47LLIO3YV3KPSIVXV",
+     "amount": "0.0010000"
+    }
+   ]
+  },
+  "xlm:id": {
+   "transaction": {
+    "hash": "53f2fd995e93d79b49788d1386222b24e01d52b15d99423478f1562789f283d1",
+    "ledger": 65151966,
+    "created_at": "2026-10-26T20:13:33Z",
+    "source_account": "GDQUSVJBXJZVKQ7UZG23RGHLD5GXS2ZQHF75Q4IP4MZJLSPEFUVXFOLP",
+    "fee_account": "GDQUSVJBXJZVKQ7UZG23RGHLD5GXS2ZQHF75Q4IP4MZJLSPEFUVXFOLP",
+    "fee_charged": "100",
+    "max_fee": "1000",
+    "operation_count": 1,
+    "memo_type": "id",
+    "memo": "123456",
+    "envelope_xdr": "AAAAAgAAAADhSVUhunNVQ/TJtbiY6x9NeWswOX/YcQ/jMpXJ5C0rcgAAA+gD4iPdAAAAAQAAAAEAAAAAAAAAAAAAAABq37WWAAAAAgAAAAAAAeJAAAAAAQAAAAAAAAABAAAAAKvQVNbkWNRSvOUlG0LGCmNJyIsEQZ9YXG/DUCzdapd1AAAAAAAAAAAAAAPoAAAAAAAAAAHkLStyAAAAQCIijCQRhu9d6NALF292m8t/ubg+FzYbJzixpjrA6kGbSyX//nhHD//GNiXVo4lgW+5HdpevmUf2oSrdJdAt8A4=",
+    "signatures": [
+     "IiKMJBGG713o0AsXb3aby3+5uD4XNhsnOLGmOsDqQZtLJf/+eEcP/8Y2JdWjiWBb7kd2l6+ZR/ahKt0l0C3wDg=="
+    ],
+    "successful": true,
+    "source_account_sequence": "279825558945136641",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "0",
+      "max_time": "1793045910"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "279825563241041921",
+     "paging_token": "279825563241041921",
+     "transaction_successful": true,
+     "source_account": "GDQUSVJBXJZVKQ7UZG23RGHLD5GXS2ZQHF75Q4IP4MZJLSPEFUVXFOLP",
+     "type": "payment",
+     "type_i": 1,
+     "created_at": "2026-10-26T20:13:33Z",
+     "transaction_hash": "53f2fd995e93d79b49788d1386222b24e01d52b15d99423478f1562789f283d1",
+     "asset_type": "native",
+     "from": "GDQUSVJBXJZVKQ7UZG23RGHLD5GXS2ZQHF75Q4IP4MZJLSPEFUVXFOLP",
+     "to": "GCV5AVGW4RMNIUV44USRWQWGBJRUTSELARAZ6WC4N7BVALG5NKLXLFIR",
+     "amount": "0.0001000"
+    }
+   ]
+  },
+  "usdc:text": {
+   "transaction": {
+    "hash": "ada2715a514c1ec58b44852fae499d3a9c9d9a0460df8cfb0bfa961f7b7acd4a",
+    "ledger": 65151628,
+    "created_at": "2026-10-26T19:45:23Z",
+    "source_account": "GAORIIUJ7YU6IB4ZKBHWIOKB2GHV3V3PRVGK7JVSJLXIHXDQAZQRSVFX",
+    "fee_account": "GAORIIUJ7YU6IB4ZKBHWIOKB2GHV3V3PRVGK7JVSJLXIHXDQAZQRSVFX",
+    "fee_charged": "100",
+    "max_fee": "1000000",
+    "operation_count": 1,
+    "memo_type": "text",
+    "memo": "8395097585615372673",
+    "envelope_xdr": "AAAAAgAAAAAdFCKJ/inkB5lQT2Q5QdGPXddvjUyvprJK7oPccAZhGQAPQkACzVgEAAUzNwAAAAEAAAAAQzU8DwAAAABq39f8AAAAAQAAABM4Mzk1MDk3NTg1NjE1MzcyNjczAAAAAAEAAAAAAAAAAQAAAABVBbZzQt+8QGDGcxw50MGmeY0wZCAWNlD1QuftoiPg1wAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAATEtAAAAAAAAAAAAXAGYRkAAABAD1zjiCsRVt2VbKD5yKODupIsHXtVtxrAEFxpPhPw66gs1JHncihUiFIKzfiYtNKEVCg0l24ovuVJWi5mVQGHCQ==",
+    "signatures": [
+     "D1zjiCsRVt2VbKD5yKODupIsHXtVtxrAEFxpPhPw66gs1JHncihUiFIKzfiYtNKEVCg0l24ovuVJWi5mVQGHCQ=="
+    ],
+    "successful": true,
+    "source_account_sequence": "201914332504994615",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "1127562255",
+      "max_time": "1793054716"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "279824111541567489",
+     "paging_token": "279824111541567489",
+     "transaction_successful": true,
+     "source_account": "GAORIIUJ7YU6IB4ZKBHWIOKB2GHV3V3PRVGK7JVSJLXIHXDQAZQRSVFX",
+     "type": "payment",
+     "type_i": 1,
+     "created_at": "2026-10-26T19:45:23Z",
+     "transaction_hash": "ada2715a514c1ec58b44852fae499d3a9c9d9a0460df8cfb0bfa961f7b7acd4a",
+     "asset_type": "credit_alphanum4",
+     "asset_code": "USDC",
+     "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+     "from": "GAORIIUJ7YU6IB4ZKBHWIOKB2GHV3V3PRVGK7JVSJLXIHXDQAZQRSVFX",
+     "to": "GBKQLNTTILP3YQDAYZZRYOOQYGTHTDJQMQQBMNSQ6VBOP3NCEPQNOMEN",
+     "amount": "8.0000000"
+    }
+   ]
+  },
+  "create:none": {
+   "transaction": {
+    "hash": "a8ff6712b37eefb1f380c4c9b169a751bc5bd573b0735cb3e71d5791d5644fba",
+    "ledger": 65151627,
+    "created_at": "2026-10-26T19:45:18Z",
+    "source_account": "GAVNQYX4KL5W5URJ3TAVOK7CNZY2NCALRRAW2FAEJ3YIUEBFVMRHG5EK",
+    "fee_account": "GAVNQYX4KL5W5URJ3TAVOK7CNZY2NCALRRAW2FAEJ3YIUEBFVMRHG5EK",
+    "fee_charged": "100",
+    "max_fee": "1000",
+    "operation_count": 1,
+    "memo_type": "none",
+    "envelope_xdr": "AAAAAgAAAAAq2GL8Uvtu0incwVcr4m5xpogLjEFtFARO8IoQJasicwAAA+gD34SPAAEWYwAAAAEAAAAAAAAAAAAAAABq364IAAAAAAAAAAEAAAAAAAAAAAAAAAAoCMgc1GsZJKDq7ur0R/7QADUkhtqQaPAAyWbM0nUzJwAAAAAAmh0gAAAAAAAAAAElqyJzAAAAQDUrbqYve1ackao47IUPSEHTX6G4shChJpup8CnHzegpINkAiAvIvc+/3HdYtFasOnq4WFBsCFI6sZji0S3bPAA=",
+    "signatures": [
+     "NStupi97VpyRqjjshQ9IQdNfobiyEKEmm6nwKcfN6Ckg2QCIC8i9z7/cd1i0Vqw6erhYUGwIUjqxmOLRLds8AA=="
+    ],
+    "successful": true,
+    "source_account_sequence": "279087451635521123",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "0",
+      "max_time": "1793043976"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "279824107246542849",
+     "paging_token": "279824107246542849",
+     "transaction_successful": true,
+     "source_account": "GAVNQYX4KL5W5URJ3TAVOK7CNZY2NCALRRAW2FAEJ3YIUEBFVMRHG5EK",
+     "type": "create_account",
+     "type_i": 0,
+     "created_at": "2026-10-26T19:45:18Z",
+     "transaction_hash": "a8ff6712b37eefb1f380c4c9b169a751bc5bd573b0735cb3e71d5791d5644fba",
+     "starting_balance": "1.0100000",
+     "funder": "GAVNQYX4KL5W5URJ3TAVOK7CNZY2NCALRRAW2FAEJ3YIUEBFVMRHG5EK",
+     "account": "GAUARSA42RVRSJFA5LXOV5CH73IAANJEQ3NJA2HQADEWNTGSOUZSPNJU"
+    }
+   ]
+  },
+  "trust:none": {
+   "transaction": {
+    "hash": "4ab8ada4272ef8b6bcc632eda514a920cca24373001de7ff82444c1d5d05ea0a",
+    "ledger": 62284660,
+    "created_at": "2026-04-25T19:31:29Z",
+    "source_account": "GDZZVYMZ6SPT77ASIW23CXTUAR5SH6RAGUIZDGCSJFUOIT4GNNNPU4LW",
+    "fee_account": "GDZZVYMZ6SPT77ASIW23CXTUAR5SH6RAGUIZDGCSJFUOIT4GNNNPU4LW",
+    "fee_charged": "100",
+    "max_fee": "10000",
+    "operation_count": 1,
+    "memo_type": "none",
+    "envelope_xdr": "AAAAAgAAAADzmuGZ9J8//BJFtbFedAR7I/ogNRGRmFJJaORPhmta+gAAJxADtmMpAAAAAQAAAAEAAAAAAAAAAAAAAABp7Rc4AAAAAAAAAAEAAAAAAAAABgAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFf/////////8AAAAAAAAAAYZrWvoAAABAY965MlPWSstIFbrLWTi9qJW2wirlFMRUk2h+DaD59JzYCN9314zEcccu+n3MergRL53acoNOzK3qvW0IfAvODg==",
+    "signatures": [
+     "Y965MlPWSstIFbrLWTi9qJW2wirlFMRUk2h+DaD59JzYCN9314zEcccu+n3MergRL53acoNOzK3qvW0IfAvODg=="
+    ],
+    "successful": true,
+    "source_account_sequence": "267510255619932161",
+    "preconditions": {
+     "timebounds": {
+      "min_time": "0",
+      "max_time": "1777145656"
+     }
+    }
+   },
+   "operations": [
+    {
+     "id": "267510577742778369",
+     "paging_token": "267510577742778369",
+     "transaction_successful": true,
+     "source_account": "GDZZVYMZ6SPT77ASIW23CXTUAR5SH6RAGUIZDGCSJFUOIT4GNNNPU4LW",
+     "type": "change_trust",
+     "type_i": 6,
+     "created_at": "2026-04-25T19:31:29Z",
+     "transaction_hash": "4ab8ada4272ef8b6bcc632eda514a920cca24373001de7ff82444c1d5d05ea0a",
+     "asset_type": "credit_alphanum4",
+     "asset_code": "USDC",
+     "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+     "limit": "922337203685.4775807",
+     "trustee": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+     "trustor": "GDZZVYMZ6SPT77ASIW23CXTUAR5SH6RAGUIZDGCSJFUOIT4GNNNPU4LW"
+    }
+   ]
+  }
+ }
+}

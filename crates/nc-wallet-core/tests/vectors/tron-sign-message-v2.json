@@ -1,0 +1,26 @@
+{
+ "_source": {
+  "tronweb": "tronprotocol/tronweb @ 974ea0bcd98c2a10f2e94addd55d4fa3b199f98a, test/testcases/src/sign-message.ts (signMessageV2: messageHash, signature, address)",
+  "trustwallet": "trustwallet/wallet-core @ adf80f8bac989e18a4ef1922e2b9eaeb4bf804a9, tests/chains/Tron/TronMessageSignerTests.cpp (signatures there are bare hex)"
+ },
+ "cases": [
+  {
+   "source": "tronweb",
+   "name": "string(\"hello world\")",
+   "private_key": "0000000000000000000000000000000000000000000000000000000000000001",
+   "message_utf8": "hello world",
+   "message_hash": "0xcf02daeb2bea196ed5692322a66ed50080ce74ff8cb711199f1b04f3c13bc10d",
+   "signature": "0x0dc0b53d525e0103a6013061cf18e60cf158809149f2b8994a545af65a7004cb1eeaff560e801ab51b28df5d42549aa024c2aa7e9d34de1e01294b9afb5e6c7e1c",
+   "address": "TMVQGm1qAQYVdetCeGRRkTWYYrLXuHK2HC"
+  },
+  {
+   "source": "tronweb",
+   "name": "bytes(0x47173285...4cb01fad)",
+   "private_key": "0000000000000000000000000000000000000000000000000000000000000001",
+   "message_hex": "0x47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad",
+   "message_hash": "0x66733cf31ee3f133db9561efdca3d65ba930bdf57fb1af3b6cc0ba4966ecc882",
+   "signature": "0x7e65909ea47c732a4734bf6c41959761b23a58f4ca34e265428fb4576ee1db402e1e007a9019131a999e9dbbe81cc1f8ba424135a529a1b56220fec02e7647fa1c",
+   "address": "TMVQGm1qAQYVdetCeGRRkTWYYrLXuHK2HC"
+  }
+ ]
+}

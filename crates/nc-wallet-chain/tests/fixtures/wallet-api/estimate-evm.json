@@ -1,0 +1,11 @@
+{
+  "network": "base",
+  "gas_limit": "21000",
+  "gas_price": "6000000",
+  "eip1559": true,
+  "max_fee_per_gas": "11000000",
+  "max_priority_fee_per_gas": "1000000",
+  "fee": { "asset": "ETH", "amount": "231610523113", "decimals": 18 },
+  "recipient": { "is_contract": false },
+  "l1_fee": "610523113"
+}

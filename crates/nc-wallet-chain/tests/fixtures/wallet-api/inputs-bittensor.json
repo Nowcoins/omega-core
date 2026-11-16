@@ -1,0 +1,13 @@
+{
+  "network": "bittensor",
+  "address": "5GZ5gN2igTGLiXUGKohhmyugHUVaz7y1rhBknM6bmVJ3z6Sa",
+  "nonce": 77,
+  "spec_version": 486,
+  "transaction_version": 1,
+  "genesis_hash": "0x2f0555cc76fc2840a25a6ea3b9637146806f1f44b090c175ffde2a7e5ab36c03",
+  "block_hash": "0x05282fae70442737bb48e0ecc0bca971c2e63dc8b9698857810174804f2a68a9",
+  "block_number": 9371216,
+  "era_period": 64,
+  "call_index": { "pallet": 5, "call": 3 },
+  "existential_deposit": "500"
+}

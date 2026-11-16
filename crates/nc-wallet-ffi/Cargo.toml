@@ -1,0 +1,59 @@
+[package]
+name = "nc-wallet-ffi"
+description = "The Dart-facing API of Nowcoin Omega's core (flutter_rust_bridge): phrases, vault, addresses and signing. Secrets stay in Rust."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+# cdylib: the Android app loads libnc_wallet_ffi.so. rlib: this crate's tests.
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+# The state behind the API (shared with the Chrome extension's WebAssembly).
+# This crate is the thin layer that lets Dart call it.
+nc-wallet-session = { workspace = true }
+# The chain client: the app reads the networks' public endpoints from the phone,
+# through this crate, with no Nowcoin server.
+nc-wallet-chain = { workspace = true }
+flutter_rust_bridge = { workspace = true }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+nc-wallet-chain = { workspace = true, features = ["testing"] }
+# The signing tests sign through the same entry points Dart calls, then check
+# each signature with the primitive crates, independently of the session:
+# recover the signer (secp256k1) or verify (ed25519, sr25519).
+nc-wallet-core = { workspace = true }
+serde_json = { workspace = true }
+hex = { workspace = true }
+k256 = { workspace = true }
+ed25519-dalek = { workspace = true }
+schnorrkel = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+bs58 = { workspace = true }
+
+[lints.rust]
+unsafe_code = "deny"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unreachable_pub = "warn"
+unused_qualifications = "warn"
+# Set by flutter_rust_bridge's macros.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+too_many_lines = "allow"
+similar_names = "allow"
+unwrap_used = "deny"
+panic = "deny"
+expect_used = "allow"

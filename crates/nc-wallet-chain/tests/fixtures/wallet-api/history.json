@@ -1,0 +1,34 @@
+{
+  "items": [
+    {
+      "hash": "0x316a268da99f8a8e28c851548d3f20080e8f030e8c15811bf161dd32fc43db5f",
+      "time": "2026-10-26T14:34:11Z",
+      "kind": "transfer",
+      "direction": "in",
+      "asset": "ETH",
+      "amount": "72563735719101",
+      "decimals": 18,
+      "counterparty": "0x5BC24606e389465DF34068fCC3357465e7A473C2",
+      "fee": null,
+      "status": "confirmed",
+      "confirmations": 2738,
+      "block": 26277488
+    },
+    {
+      "hash": "0x963d72c4e63559c3300a5153fa0e8b1ad54a824fa3908d3c55d9aaf52df7033a",
+      "time": "2026-09-19T17:22:23Z",
+      "kind": "transfer",
+      "direction": "out",
+      "asset": "USDT",
+      "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "amount": "1000000",
+      "decimals": 6,
+      "counterparty": "0xea0e8714eaf0bab35c01b6d8e56bf4abcc4a1273",
+      "fee": { "asset": "ETH", "amount": "18032262402682", "decimals": 18 },
+      "status": "confirmed",
+      "confirmations": 266820,
+      "block": 26013023
+    }
+  ],
+  "next_cursor": "eyJrIjoyNjE2OTgxMywicyI6MX0"
+}

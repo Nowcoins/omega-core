@@ -1,0 +1,16 @@
+{
+  "network": "tron",
+  "address": "TMuA6YqfCeX8EhbfYEg5y7S4DqzSJireY9",
+  "reference_block": {
+    "number": 87461647,
+    "block_id": "0000000005368f0fa1555acb3c6f9bc45b368bc2b683314e933f51fa5f1bc229",
+    "ref_block_bytes": "8f0f",
+    "ref_block_hash": "a1555acb3c6f9bc4",
+    "timestamp_ms": 1793058189000
+  },
+  "timestamp_ms": 1793058193685,
+  "expiration_ms": 1793058253685,
+  "energy_price_sun": "100",
+  "bandwidth_price_sun": "1000",
+  "account": { "activated": true, "free_bandwidth": 600, "staked_bandwidth": 0, "energy": 0 }
+}

@@ -1,0 +1,27 @@
+{
+  "send": [
+    "fee_high",
+    "high_fee",
+    "recipient_is_program_account"
+  ],
+  "signing": [
+    "approval_for_all",
+    "chain_mismatch",
+    "dangerous_instruction",
+    "delegate_approval",
+    "durable_nonce",
+    "fee_high",
+    "fee_limit_low",
+    "hash_like_message",
+    "hidden_characters",
+    "permit_signature",
+    "siwe_address_mismatch",
+    "siwe_domain_mismatch",
+    "siwe_malformed",
+    "unknown_contract_call",
+    "unknown_programs",
+    "unlimited_approval",
+    "unreadable_message",
+    "unrecognised_typed_data"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "network": "tron",
+  "energy": "64285",
+  "bandwidth": "345",
+  "energy_price_sun": "100",
+  "bandwidth_price_sun": "1000",
+  "fee_limit": "8357050",
+  "fee": { "asset": "TRX", "amount": "5528500", "decimals": 6 },
+  "activation_fee": "0",
+  "recipient": { "activated": true }
+}

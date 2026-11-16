@@ -1,0 +1,8 @@
+{
+  "code": "rate_limited",
+  "message": "too many requests",
+  "retryable": true,
+  "details": {
+    "retry_after_seconds": 7
+  }
+}

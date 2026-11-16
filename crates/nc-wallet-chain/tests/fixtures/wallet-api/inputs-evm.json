@@ -1,0 +1,12 @@
+{
+  "network": "ethereum",
+  "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+  "chain_id": 1,
+  "nonce": 5969,
+  "gas_price": "50709286",
+  "eip1559": true,
+  "base_fee": "50708939",
+  "max_priority_fee": "10000000",
+  "max_fee": "111417878",
+  "block": 26280228
+}

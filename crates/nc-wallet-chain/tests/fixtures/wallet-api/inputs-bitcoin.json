@@ -1,0 +1,18 @@
+{
+  "network": "bitcoin",
+  "address": "bc1q9qkjc8x853msxzsykp5qc5hjc0uav8ak4wwj5q",
+  "utxos": [
+    { "txid": "f341510e483fe97dd22e4bf28ed485f5e349519d84e5fb206e2331d657942118", "vout": 1,
+      "value": "56389", "address": "bc1q9qkjc8x853msxzsykp5qc5hjc0uav8ak4wwj5q",
+      "chain": 0, "index": 0, "confirmed": true, "own": false, "confirmations": 96, "block": 973215 }
+  ],
+  "truncated": false,
+  "change": { "chain": 1, "index": 0 },
+  "fee_rates": {
+    "slow":   { "sat_per_vb": "1", "sat_per_kvb": "1000" },
+    "normal": { "sat_per_vb": "1", "sat_per_kvb": "1000" },
+    "fast":   { "sat_per_vb": "1", "sat_per_kvb": "1000" }
+  },
+  "block": 973310,
+  "bitcoin": { "next_change": 0, "lookups": 21, "scanning": false }
+}

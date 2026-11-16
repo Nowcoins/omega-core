@@ -1,0 +1,636 @@
+{
+ "_source": "MetaMask/eth-sig-util @ 996ac292fe455429e76eff9576a5bd896cfe0952, src/sign-typed-data.test.ts and src/__snapshots__/sign-typed-data.test.ts.snap; the typed data is transcribed from the tests, the signatures are the snapshots'. 'atoms' are the 'example data' tests: one value of one type, in a struct Message{data: type} with an empty domain.",
+ "private_key": "4af1bceebf7f3634ec3cff8a2c38e51178d5d4ce585c52d6043e5e2cc3418bb0",
+ "cases": [
+  {
+   "name": "signTypedData V4 should sign a minimal valid typed message",
+   "data": {
+    "types": {
+     "EIP712Domain": []
+    },
+    "primaryType": "EIP712Domain",
+    "domain": {},
+    "message": {}
+   },
+   "signature": "0x24367b495e5d9f1fabc6e66abaaf0f3e5fe6fd984d5870a72523a1add3f3efdd41005bceba75e7c3ee96c233a5c7b4fe5642a58966eb46de25f111f541b272b31b"
+  },
+  {
+   "name": "signTypedData V4 should sign data with custom type",
+   "data": {
+    "types": {
+     "EIP712Domain": [],
+     "Person": [
+      {
+       "name": "name",
+       "type": "string"
+      },
+      {
+       "name": "wallet",
+       "type": "address"
+      }
+     ],
+     "Mail": [
+      {
+       "name": "from",
+       "type": "Person"
+      },
+      {
+       "name": "to",
+       "type": "Person"
+      },
+      {
+       "name": "contents",
+       "type": "string"
+      }
+     ]
+    },
+    "primaryType": "Mail",
+    "domain": {},
+    "message": {
+     "from": {
+      "name": "Cow",
+      "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+     },
+     "to": {
+      "name": "Bob",
+      "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+     },
+     "contents": "Hello, Bob!"
+    }
+   },
+   "signature": "0x22ee0cb3a379f3a122f7b59456ebcf404ca139320a0723560abde49cc95f4a2f69774bf94c4e776f1a9c8c8a67e9e2bdda131e04bde935f73fae376ee788920d1c"
+  },
+  {
+   "name": "signTypedData V4 should sign data with a custom data type array",
+   "data": {
+    "types": {
+     "EIP712Domain": [],
+     "Person": [
+      {
+       "name": "name",
+       "type": "string"
+      },
+      {
+       "name": "wallet",
+       "type": "address[]"
+      }
+     ],
+     "Mail": [
+      {
+       "name": "from",
+       "type": "Person"
+      },
+      {
+       "name": "to",
+       "type": "Person[]"
+      },
+      {
+       "name": "contents",
+       "type": "string"
+      }
+     ]
+    },
+    "primaryType": "Mail",
+    "domain": {},
+    "message": {
+     "from": {
+      "name": "Cow",
+      "wallet": [
+       "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+       "0xDD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+      ]
+     },
+     "to": [
+      {
+       "name": "Bob",
+       "wallet": [
+        "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+       ]
+      }
+     ],
+     "contents": "Hello, Bob!"
+    }
+   },
+   "signature": "0x17c484deba479e3e9f821a6d5defc0179ddf52195c0cd75895c936b3ab4d217c6ba7f1f164a3ac9701e1694a04a13f421fb67ec44cd316846326a98b0d5838a01c"
+  },
+  {
+   "name": "signTypedData V4 should sign data when given extraneous types",
+   "data": {
+    "types": {
+     "EIP712Domain": [],
+     "Message": [
+      {
+       "name": "data",
+       "type": "string"
+      }
+     ],
+     "Extra": [
+      {
+       "name": "data",
+       "type": "string"
+      }
+     ]
+    },
+    "primaryType": "Message",
+    "domain": {},
+    "message": {
+     "data": "Hello!"
+    }
+   },
+   "signature": "0x9809571f17ee150687932fb7b993f4437b05caf9c8e64818ab4356b33992f3796636c18e88ba9c6dc140f39f95d8ae5770ad2f17070af208690c82d33f3bc8701c"
+  },
+  {
+   "name": "signTypedData V4 should ignore extra unspecified message properties (equal to: should sign data with custom type)",
+   "data": {
+    "types": {
+     "EIP712Domain": [],
+     "Person": [
+      {
+       "name": "name",
+       "type": "string"
+      },
+      {
+       "name": "wallet",
+       "type": "address"
+      }
+     ],
+     "Mail": [
+      {
+       "name": "from",
+       "type": "Person"
+      },
+      {
+       "name": "to",
+       "type": "Person"
+      },
+      {
+       "name": "contents",
+       "type": "string"
+      }
+     ]
+    },
+    "primaryType": "Mail",
+    "domain": {},
+    "message": {
+     "from": {
+      "name": "Cow",
+      "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+     },
+     "to": {
+      "name": "Bob",
+      "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+     },
+     "contents": "Hello, Bob!",
+     "foo": "bar"
+    }
+   },
+   "signature": "0x22ee0cb3a379f3a122f7b59456ebcf404ca139320a0723560abde49cc95f4a2f69774bf94c4e776f1a9c8c8a67e9e2bdda131e04bde935f73fae376ee788920d1c"
+  }
+ ],
+ "atoms": [
+  {
+   "type": "address",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0xe73f6e0860ebb2660c79396142325bd00033405615b608c757901a928f81533d78441e8c323c832e72c96bf6f95d874848336537f30081b5de518a26e9fae1891c"
+  },
+  {
+   "type": "address",
+   "value": "0x1fffffffffffff",
+   "js_type": "string",
+   "signature": "0xd27fb914606ad217b3a238d24e86dd73499806fd45f6b229f50e242ec8eefe4b6325b3bcc8dc310c851379bc55d41b928d8b2828565f892819daccba3aeba0381b"
+  },
+  {
+   "type": "address",
+   "value": "0x1fffffffffffff1",
+   "js_type": "string",
+   "signature": "0x678e9fc8c29ad71f0e946f7eaf4c2dc58a3d0efa301a5a9aa414d9dab96ec47826f68af1f35371834bb142f77d20aeaca5dc4a381ac96965b88ea7c9bacb00141b"
+  },
+  {
+   "type": "address",
+   "value": "0x10",
+   "js_type": "string",
+   "signature": "0x2e8ec0d59c8e6cc60f2ce5ab70d604ead4add78d89aff00b1280ac684dea73ee411e5bdd670b00469c46d3a26a051d5453fad78ff28a9b7a4e25bdefd59d4c151b"
+  },
+  {
+   "type": "address",
+   "value": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+   "js_type": "string",
+   "signature": "0x9dfeb4cb581e1cc8ef7f1192dbbaa05a67545116c1ecb951b8aa5e7e2167e1ca463e8260231fe82395a38a597c90537f3282f6197c17b7e04baf52c5250fa3831b"
+  },
+  {
+   "type": "address",
+   "value": 10,
+   "js_type": "number",
+   "signature": "0xf43bcd9160bb4ca67d86daa0f8fe9ff06f95cc0b5e402b86cc8f9ac869be11ab4ff17fde422f95ae92d12a7394afd7ca8e72ccb262dfe3d47083933d9d2f6dd21c"
+  },
+  {
+   "type": "address",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0xd27fb914606ad217b3a238d24e86dd73499806fd45f6b229f50e242ec8eefe4b6325b3bcc8dc310c851379bc55d41b928d8b2828565f892819daccba3aeba0381b"
+  },
+  {
+   "type": "address",
+   "value": "bBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+   "js_type": "string",
+   "signature": "0x47ad9b795affe960475274f8b067225cff2451eada53b0ccf9bebd4336674b4b35b9ac6bad764f197435c7d53b6992a6d5f835796346a6ee4fd2313f8dd5b8991b"
+  },
+  {
+   "type": "bool",
+   "value": false,
+   "js_type": "boolean",
+   "signature": "0xf61ac8da1b7c663c7a7d16d1fefc75ffa739cd5a7af7b165405df3f616f899fa205e73f6f885b7fb6a4f0a5ec14c715c8642d4f59cb88abd361c8a1590cd70071b"
+  },
+  {
+   "type": "bool",
+   "value": "false",
+   "js_type": "string",
+   "signature": "0xf61ac8da1b7c663c7a7d16d1fefc75ffa739cd5a7af7b165405df3f616f899fa205e73f6f885b7fb6a4f0a5ec14c715c8642d4f59cb88abd361c8a1590cd70071b"
+  },
+  {
+   "type": "bool",
+   "value": true,
+   "js_type": "boolean",
+   "signature": "0x5266f7fdc7b8d6552656609f7160760f323a4b37ba80e41b33fdb5637349538c123e338354fd3c0fa0741725c3a273a3857d9a2f490b7ebd612b83d10b2246a11b"
+  },
+  {
+   "type": "bool",
+   "value": "true",
+   "js_type": "string",
+   "signature": "0x5266f7fdc7b8d6552656609f7160760f323a4b37ba80e41b33fdb5637349538c123e338354fd3c0fa0741725c3a273a3857d9a2f490b7ebd612b83d10b2246a11b"
+  },
+  {
+   "type": "bytes",
+   "value": "0x",
+   "js_type": "string",
+   "signature": "0xfd9fdcd8d428bdcf00d760e9f984f4c8ec1703fc5503e5f02bf00292d6ce65e71175fe5666983a14ca41dba4b2b81c9b384bae97d8ec3ba84c7de4d4b79ab72d1c"
+  },
+  {
+   "type": "bytes",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0xe39c5f814e5f99475bd4548104bd5ce8129b3ecf4c689360f325e4aa48a5c7d846cd729e86deb9fc35338a1d3262ee0a25945658708e037dd8ab72f0fa0aaba21b"
+  },
+  {
+   "type": "bytes",
+   "value": "0x1fffffffffffff",
+   "js_type": "string",
+   "signature": "0x75341a7f0040dd85926f3b5d9282216eb7bbd417cdbf6847442714583d5e4e50669f0e257be2ccb503b5b5012984976a4eb827e6a348823c1f2890575491b7e71b"
+  },
+  {
+   "type": "bytes",
+   "value": "0x1fffffffffffff1",
+   "js_type": "string",
+   "signature": "0xf02dac48072faa6e8ca381848bd9d448720e87a93221f1334e14d0757379be7b612cfed4cc2e1da6ee9bcae7d4819d2c0eca4b8132445b8c310c70eb8438349f1c"
+  },
+  {
+   "type": "bytes",
+   "value": "0x10",
+   "js_type": "string",
+   "signature": "0x3de701e25bff8626c535c0b630b5d5cce8230965ef5cd21b894daef9c3fe15b7042ea68ebbe272a50d1d69dc1df1a3e5a5a16ca570cee8df43d251d4835b808f1b"
+  },
+  {
+   "type": "bytes",
+   "value": "0x101",
+   "js_type": "string",
+   "signature": "0x821516d637520e4fc33b1493648fba6e90966cc0831f2a5b388d4772e76b8c1c47d0f0346a42c153a56d3144087de5933e10d2c3a1c458a48dd1343d05b03e4b1b"
+  },
+  {
+   "type": "bytes",
+   "value": "0xa22cb465000000000000000000000000a9079d872d10185b54c5db2c36cc978cbd3f72b70000000000000000000000000000000000000000000000000000000000000001",
+   "js_type": "string",
+   "signature": "0x82533d24d72d06740288f8276a45cd67271a2cf48e0a48bf4782467edabaa3b726aa6e912ccbbe808dd7cd17f4aa018edcc655f0b639661178a823c9869cf1de1c"
+  },
+  {
+   "type": "bytes",
+   "value": 10,
+   "js_type": "number",
+   "signature": "0x3d21aa6434df45520cd508b0a5ebbf237cce369518fa6c2b7d18919af55f2d67328ac8634cd92f8530422e47f6feaa7310eb8b661160c3123f224ce981b05eff1b"
+  },
+  {
+   "type": "bytes",
+   "value": "10",
+   "js_type": "string",
+   "signature": "0xb1db198b7d92bf4cf766276d7a7998a770cb16f8adeaae5f0ac4a0c3372ec75b27d8e5514fcf3ea8cf7b57041792a018dcc31b02f5696500d742618b48bb7f8f1c"
+  },
+  {
+   "type": "bytes1",
+   "value": -1,
+   "js_type": "number",
+   "signature": "0xc15ab20b7c3b2756ea60a4298039ece7225cccfe8e5d6f3fbf66ccd0fbfbe5c13b158ac2dce6003c9102b73cb1a58c65f21c8dc94b6d70bfb0cbabad550c76731b"
+  },
+  {
+   "type": "bytes1",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0xc15ab20b7c3b2756ea60a4298039ece7225cccfe8e5d6f3fbf66ccd0fbfbe5c13b158ac2dce6003c9102b73cb1a58c65f21c8dc94b6d70bfb0cbabad550c76731b"
+  },
+  {
+   "type": "bytes1",
+   "value": "0x1fffffffffffff",
+   "js_type": "string",
+   "signature": "0x5f4f40ddbf9e075eb6606463ff6f943f81093b4bfd435e9ff7b2439c973e456126662c2373f7c1e1ec14f051438f3a3e80ff24b9b2a8e89ccf723f89f3eb3f831c"
+  },
+  {
+   "type": "bytes1",
+   "value": "0x1fffffffffffff1",
+   "js_type": "string",
+   "signature": "0x46661b79695cfabc0ff41021988f7a6affe29d0bcb7e19848fd1754cb2102c1769564aff54e68a6f0e892f49ed6c30860bfab8aa293023081e5d4a7b83959c231b"
+  },
+  {
+   "type": "bytes1",
+   "value": "0x10",
+   "js_type": "string",
+   "signature": "0xf11b3b9780d816c741a8902eec2e3b1d40225283c273d5aef4dc776045cfcf9b626ea06c50e5d6180cb9bc7583f2ffa8ddc5c99641b954830539bf7faf3e90041b"
+  },
+  {
+   "type": "bytes1",
+   "value": "0x101",
+   "js_type": "string",
+   "signature": "0xa7ae2aedcaedfed7c567a30773a9d53105e03a3b36a96269051b2e20ba283a1d65dbf79b2c932d11e9902c9ca9e3e842ddab6426604c82ae31c78fcb5798e61d1b"
+  },
+  {
+   "type": "bytes1",
+   "value": 1,
+   "js_type": "number",
+   "signature": "0x2a6edb8421b95a3180febf0363013a3f2db8dd86cab32cb14e8b114b9007ac7c6f61ab367597538b73da7dfd47d5aff950271f2dec056c8b0799e1423b65e6951b"
+  },
+  {
+   "type": "bytes1",
+   "value": 10,
+   "js_type": "number",
+   "signature": "0x35d17bc5a60f14a6ec63cc8a6e7b1e91e394fbaa82b196e8cfe12599190db025717854d809dc1b3884a25b99dc72654f36061436c72adf58e03487d2053564e51c"
+  },
+  {
+   "type": "bytes1",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0x5f4f40ddbf9e075eb6606463ff6f943f81093b4bfd435e9ff7b2439c973e456126662c2373f7c1e1ec14f051438f3a3e80ff24b9b2a8e89ccf723f89f3eb3f831c"
+  },
+  {
+   "type": "bytes32",
+   "value": -1,
+   "js_type": "number",
+   "signature": "0xc5e2c5d5bda933ad6fae2fe43876fb07a4af675b6b5da2371de3ac21ec7628162fcb7162e67087a3ca677c081dc9acaf15854af1b417a97fe712ae08f42f05121c"
+  },
+  {
+   "type": "bytes32",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0xc5e2c5d5bda933ad6fae2fe43876fb07a4af675b6b5da2371de3ac21ec7628162fcb7162e67087a3ca677c081dc9acaf15854af1b417a97fe712ae08f42f05121c"
+  },
+  {
+   "type": "bytes32",
+   "value": "0x1fffffffffffff",
+   "js_type": "string",
+   "signature": "0xec7910b30e4b6d821bf45f5d1ebd306c89195bc4c147ef8ae626616ce27ccf886abfdc4f1d4c2bba41e044726c2c33f82d560aa926821a765d4ee111ab7d2e321c"
+  },
+  {
+   "type": "bytes32",
+   "value": "0x1fffffffffffff1",
+   "js_type": "string",
+   "signature": "0x01dca7a73a53e3d3662ac0481303c81e46ee23a1b8eda2fc7f5c26a7fe741258533fcd529b0ec7cb0dbceb4fa52a68de614c9c8054005fa137b43c67aeb835d11c"
+  },
+  {
+   "type": "bytes32",
+   "value": "0x10",
+   "js_type": "string",
+   "signature": "0xaff4369700fffca0a2b22d522271a19224335faec5477f95b62cfd5b474e785f56918ee1f349f797fbc8990395f701b1c2a5d5830b91677c663fd0bd481011e81b"
+  },
+  {
+   "type": "bytes32",
+   "value": "0x101",
+   "js_type": "string",
+   "signature": "0x7773a01449eda49d700fb3e19fe2b94ff164ee32b1b87fdcf105c3e8d72f1c1e241f75e04f9bf672ee91f76d5f9e6118cf8d8d5523b78e8030a7df3d53eea6f01b"
+  },
+  {
+   "type": "bytes32",
+   "value": 1,
+   "js_type": "number",
+   "signature": "0x1cdd1d18ccf46819ec85d07f326d5cece9a38b5af5bb1417940b3962e3dbbaf019f72968def0748494903f8947f0c5d034bf386609b342bcdf85b793322b50541c"
+  },
+  {
+   "type": "bytes32",
+   "value": 10,
+   "js_type": "number",
+   "signature": "0xc5a0a2c7b01f6c6c946b677fe909b49e61a4d7f940a9720b68fa903bf2d9d6f5007d7b8d40bbef56787c352386479c83c0f79703f43b2aa00facd05a6ec911941b"
+  },
+  {
+   "type": "bytes32",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0xec7910b30e4b6d821bf45f5d1ebd306c89195bc4c147ef8ae626616ce27ccf886abfdc4f1d4c2bba41e044726c2c33f82d560aa926821a765d4ee111ab7d2e321c"
+  },
+  {
+   "type": "int",
+   "value": -9007199254740991,
+   "js_type": "number",
+   "signature": "0xa6c3a7fe6d30fea7b7cb53c6b7e06bd2c84f1b8f08997117ed54ac84f0fca14501409d2a4874a257b18979e4c7a7138dd78a798ea1be74038323148bf02506911b"
+  },
+  {
+   "type": "int",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0xdd409db970cab27303fc5d09b7b97787724cb3b4c3bc702a50cc14aa3105df83129123f4e10ef9f1962d5ef2f4976dd2d25c63580a2421d4d2f37819c76313681b"
+  },
+  {
+   "type": "int",
+   "value": "0",
+   "js_type": "string",
+   "signature": "0xdd409db970cab27303fc5d09b7b97787724cb3b4c3bc702a50cc14aa3105df83129123f4e10ef9f1962d5ef2f4976dd2d25c63580a2421d4d2f37819c76313681b"
+  },
+  {
+   "type": "int",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0xdd409db970cab27303fc5d09b7b97787724cb3b4c3bc702a50cc14aa3105df83129123f4e10ef9f1962d5ef2f4976dd2d25c63580a2421d4d2f37819c76313681b"
+  },
+  {
+   "type": "int",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0x8189a5ff41daf78340d0590eff0d567e230d159276bffe9b7fd471213a49a45831c3f27eb34eef73321b9df64792b494f12e8553c1d6f6976833b3f46319c2301b"
+  },
+  {
+   "type": "int8",
+   "value": -255,
+   "js_type": "number",
+   "signature": "0xb6d4b6c9310ebd6559dde32673f6631cf125a90acf0095dfc186b8ff5cd8c30d403e3948e086c70f6b2d2fa6342f8fed39fa2f9e74821e0f5b53fce6ef97aa491b"
+  },
+  {
+   "type": "int8",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0x1316dd89e3828b6e3fb2a1b73f35e9914e5f13bd7e636a6ffc091e38d27d75dd450443e38024d88f7b856da9fccf4b27d508cb403e6206c618a03a912f68f4141b"
+  },
+  {
+   "type": "int8",
+   "value": "0",
+   "js_type": "string",
+   "signature": "0x1316dd89e3828b6e3fb2a1b73f35e9914e5f13bd7e636a6ffc091e38d27d75dd450443e38024d88f7b856da9fccf4b27d508cb403e6206c618a03a912f68f4141b"
+  },
+  {
+   "type": "int8",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0x1316dd89e3828b6e3fb2a1b73f35e9914e5f13bd7e636a6ffc091e38d27d75dd450443e38024d88f7b856da9fccf4b27d508cb403e6206c618a03a912f68f4141b"
+  },
+  {
+   "type": "int8",
+   "value": 255,
+   "js_type": "number",
+   "signature": "0xefa01f8b611ed6e95b793055522e622a4b10537ffb5a184090e9eb77f8228fae26357a007a1fc367012e385d59674ebf0ebbbf4c4e053ea9af82d10d3fa703861c"
+  },
+  {
+   "type": "int256",
+   "value": -9007199254740991,
+   "js_type": "number",
+   "signature": "0x3f27685a18b99b2a0964095574c35167bd34cd85b3a65862d88db43d92617cf670ac65add7b0cbe16f88b26c4b2dc5f81d921cede6dc7a728ff81daf85b337691b"
+  },
+  {
+   "type": "int256",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0x0fe1dd3ecff08d997109758eb0840d08ace0ea609c9aaa6a6922d1d7b22b5dd8793641a43926881581c25c98bca175070a0979739d3c3358c22fb46aad7b97a41c"
+  },
+  {
+   "type": "int256",
+   "value": "0",
+   "js_type": "string",
+   "signature": "0x0fe1dd3ecff08d997109758eb0840d08ace0ea609c9aaa6a6922d1d7b22b5dd8793641a43926881581c25c98bca175070a0979739d3c3358c22fb46aad7b97a41c"
+  },
+  {
+   "type": "int256",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0x0fe1dd3ecff08d997109758eb0840d08ace0ea609c9aaa6a6922d1d7b22b5dd8793641a43926881581c25c98bca175070a0979739d3c3358c22fb46aad7b97a41c"
+  },
+  {
+   "type": "int256",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0x1a6bca5f37a80a1646bf168077c06822c8166b5bf647f15dbafec05ec256e14f51e18d4f488999f3927e5f016d97ede1002980b5074390eb9299188d8c7120c01b"
+  },
+  {
+   "type": "string",
+   "value": "0x1fffffffffffff",
+   "js_type": "string",
+   "signature": "0x99d1a502349fc8c9d9d15cc700b95ab45addd59d73dfb5e48c5546e94f12ef1b6d5711bafe5d7a1654aa6cc617f068a5c2159178dfb0199bd3957016cd04942e1b"
+  },
+  {
+   "type": "string",
+   "value": "0x1fffffffffffff1",
+   "js_type": "string",
+   "signature": "0xa0115250ade38055a8c8bcaab184e84ad9b69aa1f9573d6170bf5ee21760e14977b698fd84637af47840dea9f2d76aa53224db9757cddf4adb3f4ebecfad6d2e1c"
+  },
+  {
+   "type": "string",
+   "value": "0xabcd",
+   "js_type": "string",
+   "signature": "0xd38dab443bd26748336d36f2b454ca334217fc02f11378bc94cc224af6b481da4311389dd3798b20880292e9076e9cb512e1262825b81e2b09a1e391e81e78ec1c"
+  },
+  {
+   "type": "string",
+   "value": "0xabcde",
+   "js_type": "string",
+   "signature": "0x950099e38a3348de4527879d2a8cc46962ca8f151cc618e0bce599aa8a80f29e0b110da7af3cad9a00fd480da48a1788539594c1f7cc05dca35860bb86977fdf1c"
+  },
+  {
+   "type": "string",
+   "value": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+   "js_type": "string",
+   "signature": "0x3aec2d7f64634830ad9ef09550595bd1010e9317e10d4a46223669ac9368ef9868d2b03881c1abf9d4b9da9301ad631d29d14670c8e02e9e005108ba76ed46931b"
+  },
+  {
+   "type": "string",
+   "value": 10,
+   "js_type": "number",
+   "signature": "0xf2c859f1a71eb5abc85cdf960eacf752311e434a985113cbbb150f024790119973fcadf5c60fc068935ecc5e587138678912a654e8f8bec1cb58bafd498bd9e01c"
+  },
+  {
+   "type": "string",
+   "value": "Hello!",
+   "js_type": "string",
+   "signature": "0x9809571f17ee150687932fb7b993f4437b05caf9c8e64818ab4356b33992f3796636c18e88ba9c6dc140f39f95d8ae5770ad2f17070af208690c82d33f3bc8701c"
+  },
+  {
+   "type": "string",
+   "value": "😁",
+   "js_type": "string",
+   "signature": "0x64f99af2821e76b485ad87edfe6d82d52f8951304a83595ffa7fa4e4a79e96dd344108d1f5bb5b09b24b59ee13d4e67b2f2083e5f258d8553aa301d59cb51d761c"
+  },
+  {
+   "type": "uint",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0xd6d0b9b316f88918183ee25189a415bcb8c090cfd9fcce595b26536554aad47f09d7a4852c92cd4b139e8f0df5128e7d0216eb2042342a4ec9bd5de83ce4ce501b"
+  },
+  {
+   "type": "uint",
+   "value": "0",
+   "js_type": "string",
+   "signature": "0xd6d0b9b316f88918183ee25189a415bcb8c090cfd9fcce595b26536554aad47f09d7a4852c92cd4b139e8f0df5128e7d0216eb2042342a4ec9bd5de83ce4ce501b"
+  },
+  {
+   "type": "uint",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0xd6d0b9b316f88918183ee25189a415bcb8c090cfd9fcce595b26536554aad47f09d7a4852c92cd4b139e8f0df5128e7d0216eb2042342a4ec9bd5de83ce4ce501b"
+  },
+  {
+   "type": "uint",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0x53ac6b18696c9ef1eb82e260aee09adef15d3434bdf96223d0fdbe94f208dd0b69283474f3c46477f46e550fc1581f99145ede1946e7781922f240ecac6217011b"
+  },
+  {
+   "type": "uint8",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0x2e2308e1018ab9e53138698c7171f11eed668a06735a0b61ef8ca6aaa9ce0f9949d8955bd03d151451d91a2230ba60e4d70a42a360de9612aee826b0b1ecf5c71c"
+  },
+  {
+   "type": "uint8",
+   "value": "0",
+   "js_type": "string",
+   "signature": "0x2e2308e1018ab9e53138698c7171f11eed668a06735a0b61ef8ca6aaa9ce0f9949d8955bd03d151451d91a2230ba60e4d70a42a360de9612aee826b0b1ecf5c71c"
+  },
+  {
+   "type": "uint8",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0x2e2308e1018ab9e53138698c7171f11eed668a06735a0b61ef8ca6aaa9ce0f9949d8955bd03d151451d91a2230ba60e4d70a42a360de9612aee826b0b1ecf5c71c"
+  },
+  {
+   "type": "uint8",
+   "value": 255,
+   "js_type": "number",
+   "signature": "0x07a0c3566cff100c5861355d1aeddb437269f05f6413498c32be63a7383152123e6a794d4fbfae20a512303ed5b7462d9fbb38cd581b890d3a54817576ef5fe91b"
+  },
+  {
+   "type": "uint256",
+   "value": 0,
+   "js_type": "number",
+   "signature": "0xa3a1c673befacff9a67c4a6e7b22cf379f40ff2e7887e34ccb2d4bafe86d974f6f476a773c658a417453e2c492659b722064f794e75f821ca4515fbf3e4148011c"
+  },
+  {
+   "type": "uint256",
+   "value": "0",
+   "js_type": "string",
+   "signature": "0xa3a1c673befacff9a67c4a6e7b22cf379f40ff2e7887e34ccb2d4bafe86d974f6f476a773c658a417453e2c492659b722064f794e75f821ca4515fbf3e4148011c"
+  },
+  {
+   "type": "uint256",
+   "value": "0x0",
+   "js_type": "string",
+   "signature": "0xa3a1c673befacff9a67c4a6e7b22cf379f40ff2e7887e34ccb2d4bafe86d974f6f476a773c658a417453e2c492659b722064f794e75f821ca4515fbf3e4148011c"
+  },
+  {
+   "type": "uint256",
+   "value": 9007199254740991,
+   "js_type": "number",
+   "signature": "0x6a871571b479e3cfd3c71e44d9e81fc169bf648e672404b062fdb6248c4efd0f0d82c40b312190135421a05746ed106c008ff0a45a2db04c5efe59e5b65312f51c"
+  }
+ ]
+}

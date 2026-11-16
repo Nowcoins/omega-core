@@ -1,0 +1,6 @@
+{
+  "network": "bittensor",
+  "fee": { "asset": "TAO", "amount": "83125", "decimals": 9 },
+  "existential_deposit": "500",
+  "recipient": { "exists": true }
+}
