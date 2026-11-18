@@ -40,7 +40,7 @@ pub(super) const ABANDON: &str =
 pub(super) const EVM_0: &str = "0x9858EfFD232B4033E47d90003D41EC34EcaEda94";
 
 pub(super) fn secrets() -> Secrets {
-    Secrets {
+    Secrets::Phrase {
         mnemonic: Mnemonic::parse(ABANDON).unwrap(),
         passphrase: Zeroizing::new(String::new()),
     }
@@ -49,6 +49,31 @@ pub(super) fn secrets() -> Secrets {
 pub(super) fn engine() -> Engine {
     let mut engine = Engine::new();
     engine.set_session_for_tests(secrets());
+    engine
+}
+
+/// The reference phrase's account 0 on `family`, written as its owner would export the key:
+/// 64 hexadecimal digits, or Solana's base58 of the seed and the public key.
+pub(super) fn exported_key(family: nc_wallet_core::Network) -> String {
+    let key =
+        nc_wallet_core::signing_key(&Mnemonic::parse(ABANDON).unwrap(), "", family, 0).unwrap();
+    nc_wallet_core::ImportedKey::from_parts(
+        if family == nc_wallet_core::Network::Solana {
+            nc_wallet_core::ImportedKeyKind::Ed25519
+        } else {
+            nc_wallet_core::ImportedKeyKind::Secp256k1
+        },
+        key.expose_secret(),
+    )
+    .unwrap()
+    .expose_text()
+    .to_string()
+}
+
+/// A wallet that is one imported private key, unlocked.
+pub(super) fn key_engine(text: &str) -> Engine {
+    let mut engine = Engine::new();
+    engine.set_session_for_tests(Secrets::Key(nc_wallet_core::ImportedKey::parse(text).unwrap()));
     engine
 }
 

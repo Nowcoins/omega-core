@@ -53,6 +53,68 @@ pub struct PhraseCheck {
     pub suggestions: Vec<String>,
 }
 
+/// What a wallet is made of.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WalletKind {
+    /// A recovery phrase: every network, any number of accounts.
+    Phrase,
+    /// One imported secp256k1 private key: Ethereum, BNB Chain, Polygon, Base and TRON.
+    KeySecp256k1,
+    /// One imported ed25519 private key: Solana.
+    KeyEd25519,
+}
+
+impl WalletKind {
+    /// A stable name, for apps that cannot share the enum.
+    pub const fn code(self) -> &'static str {
+        match self {
+            Self::Phrase => "phrase",
+            Self::KeySecp256k1 => "keySecp256k1",
+            Self::KeyEd25519 => "keyEd25519",
+        }
+    }
+}
+
+/// What `check_key` found in the text a person pasted as a private key.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KeyProblem {
+    /// Nothing typed yet.
+    Empty,
+    /// A private key the wallet can open.
+    Valid,
+    /// Not a private key in any form the wallet reads.
+    Unrecognised,
+    /// An address (32 bytes of base58), not a key.
+    LooksLikeAnAddress,
+    /// 64 hexadecimal digits that are not a key of the curve.
+    NotOnCurve,
+    /// A Solana secret key whose two halves do not belong together.
+    HalvesDisagree,
+}
+
+impl KeyProblem {
+    /// A stable name, for apps that cannot share the enum.
+    pub const fn code(self) -> &'static str {
+        match self {
+            Self::Empty => "empty",
+            Self::Valid => "valid",
+            Self::Unrecognised => "unrecognised",
+            Self::LooksLikeAnAddress => "looksLikeAnAddress",
+            Self::NotOnCurve => "notOnCurve",
+            Self::HalvesDisagree => "halvesDisagree",
+        }
+    }
+}
+
+/// The result of reading pasted text as a private key. Nothing of the key is in it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeyCheck {
+    /// What was found.
+    pub problem: KeyProblem,
+    /// For `Valid`: which kind of key it is, and so which networks it opens.
+    pub kind: Option<WalletKind>,
+}
+
 /// One question of the backup check: which word stands at `position`?
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BackupQuestion {

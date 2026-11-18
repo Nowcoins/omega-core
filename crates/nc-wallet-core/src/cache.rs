@@ -64,6 +64,13 @@ impl CacheMaster {
         Self(*mac(seed.expose_secret(), &[b"nowcoin-wallet/cache/master/v1"]))
     }
 
+    /// The master of a wallet that is one imported private key: made from the key under a
+    /// label of its own, so it is never the master of a phrase.
+    #[must_use]
+    pub fn from_imported(key: &crate::imported::ImportedKey) -> Self {
+        Self(*mac(key.expose_secret(), &[b"nowcoin-wallet/cache/master/imported-key/v1"]))
+    }
+
     /// The name to store `label`'s blob under: 24 hex characters.
     #[must_use]
     pub fn id(&self, label: &str) -> String {

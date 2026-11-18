@@ -15,8 +15,9 @@ No server, no API keys, and the secrets never leave the device.**
 ---
 
 Nowcoin Omega is a self-custody wallet for Android and Chrome. This repository is its **engine**: the Rust code that makes
-and restores recovery phrases, derives accounts on nine networks, builds and signs transactions, keeps the phrase in an
-encrypted vault, and reads balances, fees, prices and history straight from public blockchain endpoints. Both apps run
+and restores recovery phrases, opens a wallet from one private key, derives accounts on nine networks, builds and signs
+transactions, keeps the phrase or the key in an encrypted vault, and reads balances, fees, prices and history straight
+from public blockchain endpoints. Both apps run
 this same code: the Android app through [`flutter_rust_bridge`](https://github.com/fzyzcjy/flutter_rust_bridge), the
 Chrome extension as WebAssembly in its service worker.
 
@@ -99,11 +100,19 @@ WebAssembly, where the build fails rather than fall back to anything weaker) and
 - **Secrets.** `Mnemonic`, `Seed` and `SigningKey` zeroize on drop, print a placeholder under `Debug` and have no
   `Display`; each is read through a method named for it (`expose_phrase`, `expose_secret`), so one search finds every
   reader. Tests check that no formatting of a secret, bare or nested, contains its bytes.
-- **The vault.** The phrase (and an optional BIP-39 passphrase) is sealed with **Argon2id** (64 MiB, 3 passes, a random
-  16-byte salt) and **AES-256-GCM** (a random 96-bit nonce), the whole header bound as associated data and the payload
-  padded so 12- and 24-word phrases make blobs of one length. Hostile cost parameters are refused before anything is
+- **The vault.** The phrase (and an optional BIP-39 passphrase), or the one private key of a wallet that is a key, is
+  sealed with **Argon2id** (64 MiB, 3 passes, a random 16-byte salt) and **AES-256-GCM** (a random 96-bit nonce), the
+  whole header bound as associated data and the payload padded so that 12 words, 24 words and a single key make blobs
+  of one length: a vault does not say which it holds. Hostile cost parameters are refused before anything is
   allocated. The format is documented byte by byte in
   [`crates/nc-wallet-core/src/vault.rs`](crates/nc-wallet-core/src/vault.rs).
+- **A wallet from one private key.** A key another wallet exported (64 hexadecimal digits for the EVM networks and
+  TRON; Solana's base58 secret key, or its list of numbers) is read by
+  [`ImportedKey`](crates/nc-wallet-core/src/imported.rs), which refuses what is not one: an *address* pasted where the
+  key belongs is named as an address (40 hexadecimal digits, a `T…` or `bc1…` text, a 32-byte base58), never opened as
+  a wallet nobody asked for, and a Solana secret whose public half is not its own is refused as damaged. Such a wallet
+  is one account on the networks its key is of, and on no other: asked for Bitcoin or a second account, the engine
+  says so with a typed error.
 - **Approvals.** A request is decoded and checked against the account that would sign, then summarised for the person;
   the approval hash covers the kind, the network, the signer, the exact bytes and the summary. Warnings (an unlimited
   approval, an unknown contract, a mismatched chain...) come from one closed list in the engine, so no app can show a

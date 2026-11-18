@@ -41,6 +41,18 @@
 //! | 2 | passphrase length `p` (0 for none) |
 //! | `p` | the BIP-39 passphrase, UTF-8 |
 //!
+//! A wallet that is one imported private key ([`crate::imported`]) is sealed the
+//! same way, with a payload of its own:
+//!
+//! | Size | Field |
+//! |---|---|
+//! | 1 | payload version, `2` |
+//! | 1 | the key's kind: `1` = secp256k1, `2` = ed25519 (Solana) |
+//! | 32 | the key |
+//!
+//! [`open`] and its kin read a phrase and answer [`VaultError::HoldsAKey`] for such a
+//! vault; [`open_any`] and its kin read either ([`Held`]).
+//!
 //! # The password
 //!
 //! The password is normalised to Unicode NFKD before it is used, so the same
@@ -65,6 +77,7 @@ use argon2::{Algorithm, Argon2, Block, Params, Version};
 use unicode_normalization::UnicodeNormalization as _;
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
+use crate::imported::{ImportedKey, ImportedKeyKind};
 use crate::mnemonic::Mnemonic;
 
 const MAGIC: &[u8; 4] = b"NCWV";
@@ -73,6 +86,8 @@ const FORMAT_VERSION: u8 = 1;
 const KDF_ARGON2ID_V13: u8 = 1;
 const CIPHER_AES_256_GCM: u8 = 1;
 const PAYLOAD_VERSION: u8 = 1;
+/// The payload of a wallet that is one imported private key.
+const PAYLOAD_KEY: u8 = 2;
 
 const SALT_LEN: usize = 16;
 const NONCE_LEN: usize = 12;
@@ -299,6 +314,10 @@ pub enum VaultError {
     #[error("the vault opened but its contents are not valid")]
     Corrupt,
 
+    /// The vault holds an imported private key, and a recovery phrase was asked for.
+    #[error("this vault holds a private key, not a recovery phrase")]
+    HoldsAKey,
+
     /// A key of the wrong length.
     #[error("a vault key is 32 bytes")]
     BadKey,
@@ -376,6 +395,24 @@ impl Opened {
 impl fmt::Debug for Opened {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Opened(<redacted>)")
+    }
+}
+
+/// What a vault holds, phrase or private key: what [`open_any`] gives. Both wipe
+/// themselves when dropped; `Debug` prints nothing of either.
+pub enum Held {
+    /// A recovery phrase and its passphrase.
+    Phrase(Opened),
+    /// One imported private key.
+    Key(ImportedKey),
+}
+
+impl fmt::Debug for Held {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Phrase(_) => "Held::Phrase(<redacted>)",
+            Self::Key(_) => "Held::Key(<redacted>)",
+        })
     }
 }
 
@@ -477,6 +514,29 @@ pub fn seal_keeping_key_with_params(
     )
 }
 
+/// Seals an imported private key under `password`, as [`seal_keeping_key_with_params`]
+/// seals a phrase: the same header, cipher and padding, so nothing outside the vault
+/// tells the two apart, and the key it sealed with for an app that unlocks without the
+/// password afterwards.
+pub fn seal_imported_keeping_key_with_params(
+    imported: &ImportedKey,
+    password: &str,
+    params: VaultParams,
+) -> Result<(Vec<u8>, VaultKey), VaultError> {
+    if params.memory_kib < VaultParams::MIN_MEMORY_KIB
+        || params.iterations < VaultParams::MIN_ITERATIONS
+    {
+        return Err(VaultError::BadParams);
+    }
+    seal_plaintext(
+        &encode_key_payload(imported),
+        password,
+        params,
+        random::<SALT_LEN>()?,
+        random::<NONCE_LEN>()?,
+    )
+}
+
 /// The sealing itself, with the salt and nonce given (so a test can pin the
 /// bytes) and no floor on the parameters.
 #[cfg(test)]
@@ -503,6 +563,18 @@ fn seal_inner(
     if passphrase.len() > MAX_PASSPHRASE_LEN {
         return Err(VaultError::PassphraseTooLong);
     }
+    seal_plaintext(&encode_payload(mnemonic, passphrase)?, password, params, salt, nonce)
+}
+
+/// Seals a payload already laid out and padded.
+fn seal_plaintext(
+    plaintext: &[u8],
+    password: &str,
+    params: VaultParams,
+    salt: [u8; SALT_LEN],
+    nonce: [u8; NONCE_LEN],
+) -> Result<(Vec<u8>, VaultKey), VaultError> {
+    params.check_feasible()?;
     let key = kdf(password, &salt, &params)?;
 
     let mut header = Vec::with_capacity(HEADER_LEN);
@@ -517,10 +589,9 @@ fn seal_inner(
     header.extend_from_slice(&nonce);
     debug_assert_eq!(header.len(), HEADER_LEN);
 
-    let plaintext = encode_payload(mnemonic, passphrase)?;
     let cipher = Aes256Gcm::new(GenericArray::from_slice(&key.0));
     let sealed = cipher
-        .encrypt(GenericArray::from_slice(&nonce), Payload { msg: &plaintext, aad: &header })
+        .encrypt(GenericArray::from_slice(&nonce), Payload { msg: plaintext, aad: &header })
         .map_err(|_| VaultError::Authentication)?;
 
     let mut blob = header;
@@ -590,12 +661,54 @@ pub fn info_within(blob: &[u8], limits: VaultLimits) -> Result<VaultInfo, VaultE
 }
 
 fn open_parsed(header: &Header<'_>, key: &VaultKey) -> Result<Opened, VaultError> {
+    match open_parsed_any(header, key)? {
+        Held::Phrase(opened) => Ok(opened),
+        Held::Key(_) => Err(VaultError::HoldsAKey),
+    }
+}
+
+fn open_parsed_any(header: &Header<'_>, key: &VaultKey) -> Result<Held, VaultError> {
     let cipher = Aes256Gcm::new(GenericArray::from_slice(&key.0));
     let mut buffer = Zeroizing::new(header.sealed.to_vec());
     cipher
         .decrypt_in_place(GenericArray::from_slice(header.nonce), header.raw, &mut *buffer)
         .map_err(|_| VaultError::Authentication)?;
-    decode_payload(&buffer)
+    if buffer.first() == Some(&PAYLOAD_KEY) {
+        decode_key_payload(&buffer).map(Held::Key)
+    } else {
+        decode_payload(&buffer).map(Held::Phrase)
+    }
+}
+
+/// Opens a vault with the password, whatever it holds: a recovery phrase or an
+/// imported private key. As [`open`] in every other way.
+pub fn open_any(blob: &[u8], password: &str) -> Result<Held, VaultError> {
+    open_any_within(blob, password, VaultLimits::PHONE)
+}
+
+/// [`open_any`] for a vault whose header asks for no more than `limits`.
+pub fn open_any_within(
+    blob: &[u8],
+    password: &str,
+    limits: VaultLimits,
+) -> Result<Held, VaultError> {
+    let header = Header::parse(blob, limits)?;
+    let key = kdf(password, header.salt, &header.params)?;
+    open_parsed_any(&header, &key)
+}
+
+/// [`open_with_key`] for a vault that may hold either.
+pub fn open_any_with_key(blob: &[u8], key: &VaultKey) -> Result<Held, VaultError> {
+    open_any_with_key_within(blob, key, VaultLimits::PHONE)
+}
+
+/// [`open_any_with_key`] for a vault whose header asks for no more than `limits`.
+pub fn open_any_with_key_within(
+    blob: &[u8],
+    key: &VaultKey,
+    limits: VaultLimits,
+) -> Result<Held, VaultError> {
+    open_parsed_any(&Header::parse(blob, limits)?, key)
 }
 
 /// The password through NFKD and Argon2id.
@@ -667,6 +780,30 @@ fn decode_payload(bytes: &[u8]) -> Result<Opened, VaultError> {
     let mnemonic = Mnemonic::parse(phrase).map_err(|_| corrupt())?;
     let passphrase = Zeroizing::new(String::from_utf8(passphrase.to_vec()).map_err(|_| corrupt())?);
     Ok(Opened { mnemonic, passphrase })
+}
+
+/// The payload of an imported key: its version, its kind and its 32 bytes, padded as a phrase is.
+fn encode_key_payload(imported: &ImportedKey) -> Zeroizing<Vec<u8>> {
+    let mut out = Zeroizing::new(Vec::with_capacity(PAD_TO));
+    out.push(PAYLOAD_KEY);
+    out.push(imported.kind().code());
+    out.extend_from_slice(imported.expose_secret());
+    out.resize(PAD_TO, 0);
+    out
+}
+
+fn decode_key_payload(bytes: &[u8]) -> Result<ImportedKey, VaultError> {
+    let corrupt = || VaultError::Corrupt;
+    if bytes.len() != PAD_TO || bytes.first() != Some(&PAYLOAD_KEY) {
+        return Err(corrupt());
+    }
+    let kind = ImportedKeyKind::from_code(bytes[1]).ok_or_else(corrupt)?;
+    if bytes[34..].iter().any(|b| *b != 0) {
+        return Err(corrupt());
+    }
+    let mut secret = Zeroizing::new([0u8; 32]);
+    secret.copy_from_slice(&bytes[2..34]);
+    ImportedKey::from_parts(kind, &secret).map_err(|_| corrupt())
 }
 
 /// A 2-byte length and that many bytes; the rest after them.

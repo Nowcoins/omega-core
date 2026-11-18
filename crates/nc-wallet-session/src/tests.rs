@@ -292,7 +292,7 @@ fn the_nine_accounts_of_the_reference_phrase() {
     let mut engine = Engine::new();
     assert_eq!(engine.accounts(0).unwrap_err(), SessionError::NotUnlocked);
     let phrase = Mnemonic::parse(ABANDON).unwrap();
-    engine.set_session_for_tests(Secrets {
+    engine.set_session_for_tests(Secrets::Phrase {
         mnemonic: phrase,
         passphrase: Zeroizing::new(String::new()),
     });
@@ -883,7 +883,7 @@ fn core_errors_map_to_the_session_errors_the_apps_show() {
 
 fn unlocked(phrase: &str, passphrase: &str) -> Engine {
     let mut engine = Engine::new();
-    engine.set_session_for_tests(Secrets {
+    engine.set_session_for_tests(Secrets::Phrase {
         mnemonic: Mnemonic::parse(phrase).unwrap(),
         passphrase: Zeroizing::new(passphrase.to_owned()),
     });
@@ -911,7 +911,7 @@ fn a_cache_is_sealed_for_a_label_and_opens_only_while_unlocked_by_the_same_walle
     // Locking wipes the key: nothing opens until the wallet is unlocked again, and then the same blob does.
     engine.lock();
     assert_eq!(engine.open_cache("history/a", &blob).unwrap_err(), SessionError::NotUnlocked);
-    engine.set_session_for_tests(Secrets {
+    engine.set_session_for_tests(Secrets::Phrase {
         mnemonic: Mnemonic::parse(ABANDON).unwrap(),
         passphrase: Zeroizing::new(String::new()),
     });
@@ -926,4 +926,139 @@ fn a_cache_id_is_the_same_every_time_and_differs_by_label_and_wallet() {
     assert_eq!(id, engine.cache_id("history/ethereum/0x1").unwrap());
     assert_ne!(id, engine.cache_id("history/ethereum/0x2").unwrap());
     assert_ne!(id, unlocked(ABANDON, "p").cache_id("history/ethereum/0x1").unwrap());
+}
+
+// ---- a wallet that is one imported private key ----
+
+/// The reference phrase's first Ethereum key, which every wallet documents.
+const ABANDON_EVM_KEY: &str = "1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727";
+const ABANDON_EVM_ADDRESS: &str = "0x9858EfFD232B4033E47d90003D41EC34EcaEda94";
+
+#[test]
+fn a_private_key_is_imported_sealed_unlocked_and_shown_again() {
+    let password = Zeroizing::new("correct horse battery staple".to_owned());
+    let mut engine = Engine::with_vault_params(VaultParams::EXTENSION);
+    assert_eq!(engine.start_import_key("not a key").unwrap_err(), SessionError::InvalidKey);
+    assert!(!engine.has_pending());
+    engine.start_import_key(&format!("0x{ABANDON_EVM_KEY}")).unwrap();
+    assert_eq!(engine.wallet_kind().unwrap(), WalletKind::KeySecp256k1);
+    // A key has no words to write down and no backup check to pass.
+    assert_eq!(engine.pending_words().unwrap_err(), SessionError::HoldsAKey);
+    assert_eq!(engine.pending_word_count().unwrap_err(), SessionError::HoldsAKey);
+    assert_eq!(engine.quiz().unwrap_err(), SessionError::HoldsAKey);
+    assert_eq!(engine.solana_trust_wallet_account().unwrap_err(), SessionError::HoldsAKey);
+
+    let blob = engine.seal_pending(&password).unwrap();
+    engine.commit_pending().unwrap();
+    assert!(engine.is_unlocked());
+    let new_key = Zeroizing::new(engine.take_new_key().unwrap());
+
+    // Account 0 on the four EVM networks and on TRON, the same key on each; no other account.
+    let accounts = engine.accounts(0).unwrap();
+    let networks: Vec<NetworkId> = accounts.iter().map(|a| a.network).collect();
+    assert_eq!(
+        networks,
+        [
+            NetworkId::Ethereum,
+            NetworkId::BnbChain,
+            NetworkId::Polygon,
+            NetworkId::Base,
+            NetworkId::Tron
+        ]
+    );
+    for account in &accounts[..4] {
+        assert_eq!(account.address, ABANDON_EVM_ADDRESS);
+        assert_eq!(account.path, "");
+    }
+    assert!(accounts[4].address.starts_with('T'));
+    assert_eq!(accounts[4].public_key_hex, accounts[0].public_key_hex);
+    assert_eq!(engine.accounts(1).unwrap_err(), SessionError::AccountIndexOutOfRange);
+
+    // Locked and opened again, by the password and by the vault key, it is the same wallet.
+    engine.lock();
+    assert_eq!(engine.accounts(0).unwrap_err(), SessionError::NotUnlocked);
+    engine.unlock_with_key(&blob, &new_key).unwrap();
+    assert_eq!(engine.wallet_kind().unwrap(), WalletKind::KeySecp256k1);
+    assert_eq!(engine.accounts(0).unwrap(), accounts);
+    engine.lock();
+    let wrong = Zeroizing::new("another password".to_owned());
+    assert_eq!(
+        engine.unlock_with_password(&blob, &wrong).unwrap_err(),
+        SessionError::WrongPassword
+    );
+
+    // The key is shown again for the password alone; a phrase is not what this vault holds.
+    assert_eq!(
+        *reveal_key_within(&blob, &password, VaultLimits::EXTENSION).unwrap(),
+        ABANDON_EVM_KEY
+    );
+    assert_eq!(
+        reveal_phrase_within(&blob, &password, VaultLimits::EXTENSION).unwrap_err(),
+        SessionError::HoldsAKey
+    );
+    assert_eq!(
+        reveal_key_within(&blob, &wrong, VaultLimits::EXTENSION).unwrap_err(),
+        SessionError::WrongPassword
+    );
+
+    // A new password seals the same key.
+    let (renewed, key) = change_password_keeping_key_within(
+        &blob,
+        &password,
+        &wrong,
+        VaultParams::EXTENSION,
+        VaultLimits::EXTENSION,
+    )
+    .unwrap();
+    assert_eq!(
+        *reveal_key_within(&renewed, &wrong, VaultLimits::EXTENSION).unwrap(),
+        ABANDON_EVM_KEY
+    );
+    engine.unlock_with_key(&renewed, &Zeroizing::new(key)).unwrap();
+    assert_eq!(engine.accounts(0).unwrap(), accounts);
+}
+
+#[test]
+fn a_phrase_vault_has_no_single_key_to_show() {
+    let password = Zeroizing::new("correct horse battery staple".to_owned());
+    let mut engine = Engine::with_vault_params(VaultParams::EXTENSION);
+    engine.start_import(ABANDON, "").unwrap();
+    assert_eq!(engine.wallet_kind().unwrap(), WalletKind::Phrase);
+    let blob = engine.seal_pending(&password).unwrap();
+    assert_eq!(
+        reveal_key_within(&blob, &password, VaultLimits::EXTENSION).unwrap_err(),
+        SessionError::HoldsAPhrase
+    );
+    assert_eq!(Engine::new().wallet_kind().unwrap_err(), SessionError::NotUnlocked);
+}
+
+#[test]
+fn a_key_wallets_cache_is_its_own() {
+    let mut key_wallet = Engine::new();
+    key_wallet.set_session_for_tests(Secrets::Key(
+        nc_wallet_core::ImportedKey::parse(ABANDON_EVM_KEY).unwrap(),
+    ));
+    let blob = key_wallet.seal_cache("history/a", b"{}").unwrap();
+    assert_eq!(key_wallet.open_cache("history/a", &blob).unwrap().as_deref(), Some(&b"{}"[..]));
+    // Not the phrase wallet's, though its first key is this very key.
+    assert_eq!(unlocked(ABANDON, "").open_cache("history/a", &blob).unwrap(), None);
+    assert_ne!(
+        key_wallet.cache_id("history/a").unwrap(),
+        unlocked(ABANDON, "").cache_id("history/a").unwrap()
+    );
+}
+
+#[test]
+fn check_key_says_what_was_pasted() {
+    let found = |text: &str| check_key(text);
+    assert_eq!(found("").problem.code(), "empty");
+    assert_eq!(found(ABANDON_EVM_KEY).problem.code(), "valid");
+    assert_eq!(found(ABANDON_EVM_KEY).kind.map(WalletKind::code), Some("keySecp256k1"));
+    assert_eq!(found(ABANDON).problem.code(), "unrecognised");
+    assert_eq!(found(ABANDON).kind, None);
+    assert_eq!(
+        found("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").problem.code(),
+        "looksLikeAnAddress"
+    );
+    assert_eq!(found(&"00".repeat(32)).problem.code(), "notOnCurve");
 }

@@ -468,3 +468,20 @@ fn an_unknown_instruction_reports_the_users_accounts_and_is_never_fully_understo
     assert_eq!(plain["details"]["fully_understood"], true);
     assert_eq!(plain["details"]["may_move_user_funds"], true);
 }
+
+// ---- a wallet that is one imported private key ----
+
+#[test]
+fn an_imported_solana_key_signs_exactly_what_the_phrase_signs() {
+    let phrase = engine();
+    let imported = key_engine(&exported_key(Network::Solana));
+    let bytes = sol_transfer(1_500_000_000, None);
+    let request = request(&bytes);
+    let theirs = decode(&phrase, 0, &request).unwrap();
+    let ours = decode(&imported, 0, &request).unwrap();
+    assert_eq!(ours.summary, theirs.summary);
+    assert_eq!(ours.summary["signer"], SOLANA_0);
+    assert_eq!(sign(&imported, 0, &request), sign(&phrase, 0, &request));
+    // No second account, and no EVM network, behind a Solana key.
+    assert_eq!(code(decode(&imported, 1, &request)), "Unsupported");
+}

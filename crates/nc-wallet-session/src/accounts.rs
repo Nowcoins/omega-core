@@ -1,6 +1,6 @@
 //! The nine accounts of an unlocked wallet. Public data only.
 
-use nc_wallet_core::{Mnemonic, Network, account_from_seed, derive};
+use nc_wallet_core::{ImportedKey, ImportedKeyKind, Mnemonic, Network, account_from_seed, derive};
 
 use crate::error::SessionError;
 use crate::types::{NetworkAccount, NetworkId};
@@ -37,6 +37,30 @@ pub(crate) fn accounts_of(
         entry(NetworkId::Stellar, Network::Stellar, &stellar),
         entry(NetworkId::Bittensor, Network::Bittensor, &bittensor),
     ])
+}
+
+/// The accounts of a wallet that is one imported private key: the same key on each network
+/// of its kind. There is no derivation path: the key was not derived here.
+pub(crate) fn accounts_of_key(key: &ImportedKey) -> Result<Vec<NetworkAccount>, SessionError> {
+    let entry = |network: NetworkId, family: Network| -> Result<NetworkAccount, SessionError> {
+        let account = key.account(family)?;
+        Ok(NetworkAccount {
+            network,
+            address: account.address,
+            public_key_hex: hex(&account.public_key),
+            path: String::new(),
+        })
+    };
+    match key.kind() {
+        ImportedKeyKind::Secp256k1 => Ok(vec![
+            entry(NetworkId::Ethereum, Network::Evm)?,
+            entry(NetworkId::BnbChain, Network::Evm)?,
+            entry(NetworkId::Polygon, Network::Evm)?,
+            entry(NetworkId::Base, Network::Evm)?,
+            entry(NetworkId::Tron, Network::Tron)?,
+        ]),
+        ImportedKeyKind::Ed25519 => Ok(vec![entry(NetworkId::Solana, Network::Solana)?]),
+    }
 }
 
 /// The Solana account Trust Wallet shows for a phrase, at its own path: public data only.

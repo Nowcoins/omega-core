@@ -9,6 +9,7 @@ pub mod accounts;
 pub mod cache;
 pub mod chain;
 pub mod error;
+pub mod key;
 pub mod phrase;
 pub mod signing;
 pub mod vault;

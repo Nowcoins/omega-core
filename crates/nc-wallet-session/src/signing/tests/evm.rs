@@ -873,3 +873,46 @@ fn permit2_is_decoded_as_a_spending_permission_and_other_typed_data_is_not_calle
     assert_eq!(other["details"]["may_authorise_spending"], true);
     assert_eq!(other["details"]["domain"]["known_contract"], Value::Null);
 }
+
+// ---- a wallet that is one imported private key ----
+
+#[test]
+fn an_imported_key_signs_exactly_what_the_phrase_signs() {
+    let phrase = engine();
+    let imported = key_engine(&exported_key(Network::Evm));
+    let requests = [
+        tx_request("ethereum", BOB, "1000000000000000", "0x"),
+        tx_request(
+            "ethereum",
+            USDT,
+            "0",
+            &format!(
+                "0x{}",
+                super::super::hexs::encode(&abi::erc20_transfer(
+                    &bob(),
+                    &U256::from(1_000_000_u64)
+                ))
+            ),
+        ),
+        json!({ "kind": "evm_personal_sign", "message_hex": "0x68656c6c6f" }),
+    ];
+    for request in &requests {
+        let theirs = decode(&phrase, 0, request).unwrap();
+        let ours = decode(&imported, 0, request).unwrap();
+        assert_eq!(ours.summary, theirs.summary, "{request}");
+        assert_eq!(ours.approval, theirs.approval);
+        assert_eq!(sign(&imported, 0, request), sign(&phrase, 0, request), "{request}");
+    }
+    assert_eq!(decode(&imported, 0, &requests[0]).unwrap().summary["signer"], EVM_0);
+}
+
+#[test]
+fn an_imported_key_is_account_zero_on_its_own_networks_and_nothing_else() {
+    let imported = key_engine(&exported_key(Network::Evm));
+    let request = tx_request("ethereum", BOB, "1", "0x");
+    // There is no second account, no Bitcoin and no Solana behind one secp256k1 key.
+    assert_eq!(code(decode(&imported, 1, &request)), "Unsupported");
+    assert_eq!(imported.bitcoin_zpub(0).unwrap_err().code(), "Unsupported");
+    let solana = key_engine(&exported_key(Network::Solana));
+    assert_eq!(code(decode(&solana, 0, &request)), "Unsupported");
+}

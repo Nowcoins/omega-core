@@ -17,6 +17,7 @@ use zeroize::Zeroizing;
 
 use crate::api::accounts::{NetworkAccount, NetworkId};
 use crate::api::error::WalletError;
+use crate::api::key::{KeyCheck, KeyProblem, WalletKind};
 use crate::api::phrase::{BackupQuestion, PhraseCheck, PhraseLength, PhraseProblem};
 use crate::api::signing::{AddressCheck, AddressProblem, SigningError};
 use crate::api::vault::VaultFacts;
@@ -66,6 +67,13 @@ pub(crate) fn reveal_phrase(
     password: &Zeroizing<String>,
 ) -> Result<Vec<String>, WalletError> {
     Ok(session::reveal_phrase(blob, password)?)
+}
+
+/// The private key of a key wallet, as text. The copy the session hands over is
+/// wiped here; the `String` that crosses to Dart is the one the app shows.
+pub(crate) fn reveal_key(blob: &[u8], password: &Zeroizing<String>) -> Result<String, WalletError> {
+    let text = session::reveal_key(blob, password)?;
+    Ok(text.as_str().to_owned())
 }
 
 pub(crate) fn change_password(
@@ -198,7 +206,41 @@ impl From<session::SessionError> for WalletError {
             E::NoNewKey => Self::NoNewKey,
             E::AccountIndexOutOfRange => Self::AccountIndexOutOfRange,
             E::Unavailable => Self::Unavailable,
+            E::InvalidKey => Self::InvalidKey,
+            E::HoldsAKey => Self::HoldsAKey,
+            E::HoldsAPhrase => Self::HoldsAPhrase,
         }
+    }
+}
+
+impl From<session::WalletKind> for WalletKind {
+    fn from(kind: session::WalletKind) -> Self {
+        use session::WalletKind as K;
+        match kind {
+            K::Phrase => Self::Phrase,
+            K::KeySecp256k1 => Self::KeySecp256K1,
+            K::KeyEd25519 => Self::KeyEd25519,
+        }
+    }
+}
+
+impl From<session::KeyProblem> for KeyProblem {
+    fn from(problem: session::KeyProblem) -> Self {
+        use session::KeyProblem as P;
+        match problem {
+            P::Empty => Self::Empty,
+            P::Valid => Self::Valid,
+            P::Unrecognised => Self::Unrecognised,
+            P::LooksLikeAnAddress => Self::LooksLikeAnAddress,
+            P::NotOnCurve => Self::NotOnCurve,
+            P::HalvesDisagree => Self::HalvesDisagree,
+        }
+    }
+}
+
+impl From<session::KeyCheck> for KeyCheck {
+    fn from(check: session::KeyCheck) -> Self {
+        Self { problem: check.problem.into(), kind: check.kind.map(Into::into) }
     }
 }
 

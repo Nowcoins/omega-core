@@ -166,6 +166,12 @@ impl From<CoreError> for SigningError {
             CoreError::IndexOutOfRange(_) => {
                 Self::new("AccountIndexOutOfRange", "the account number is out of range")
             }
+            // A wallet that is one imported private key, asked for a network (or an account
+            // number) its key is not an account on.
+            CoreError::KeyDoesNotReach => Self::new(
+                "Unsupported",
+                "this wallet's private key is not an account on that network",
+            ),
             _ => Self::new("Unavailable", "the account's key could not be made"),
         }
     }
@@ -275,7 +281,7 @@ pub(crate) fn signer_address(
     family: Network,
     index: u32,
 ) -> Result<String, SigningError> {
-    Ok(nc_wallet_core::derive(&secrets.mnemonic, &secrets.passphrase, family, index)?.address)
+    Ok(secrets.account(family, index)?.address)
 }
 
 /// The public key of account `index` on `family`.
@@ -284,7 +290,7 @@ pub(crate) fn signer_public_key(
     family: Network,
     index: u32,
 ) -> Result<Vec<u8>, SigningError> {
-    Ok(nc_wallet_core::derive(&secrets.mnemonic, &secrets.passphrase, family, index)?.public_key)
+    Ok(secrets.account(family, index)?.public_key)
 }
 
 /// The private key of account `index` on `family`, for one signature.
@@ -293,7 +299,7 @@ pub(crate) fn derive_key(
     family: Network,
     index: u32,
 ) -> Result<SigningKey, SigningError> {
-    Ok(nc_wallet_core::signing_key(&secrets.mnemonic, &secrets.passphrase, family, index)?)
+    Ok(secrets.signing_key(family, index)?)
 }
 
 /// Reads a request and builds everything needed to show it and to sign it.
@@ -511,7 +517,7 @@ impl Engine {
     /// addresses it derives (see `docs/direct-chain.md`).
     pub fn bitcoin_zpub(&self, index: u32) -> Result<String, SigningError> {
         let secrets = self.signing_secrets()?;
-        let seed = secrets.mnemonic.to_seed(&secrets.passphrase);
+        let seed = secrets.seed()?;
         Ok(nc_wallet_core::bitcoin::account_zpub(&seed, index)?)
     }
 }

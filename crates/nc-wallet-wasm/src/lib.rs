@@ -85,6 +85,19 @@ export interface WasmPhraseCheck {
   suggestions: string[];
 }
 
+/** What a wallet is made of: a recovery phrase, or one imported private key of one kind
+ *  (secp256k1: Ethereum, BNB Chain, Polygon, Base and TRON; ed25519: Solana). */
+export type WasmWalletKind = 'phrase' | 'keySecp256k1' | 'keyEd25519';
+
+export type WasmKeyProblem =
+  | 'empty' | 'valid' | 'unrecognised' | 'looksLikeAnAddress' | 'notOnCurve' | 'halvesDisagree';
+
+/** What is wrong with a pasted private key, if anything; and which kind it is. */
+export interface WasmKeyCheck {
+  problem: WasmKeyProblem;
+  kind: WasmWalletKind | null;
+}
+
 /** The public facts in a vault's header. */
 export interface WasmVaultFacts {
   version: number;
@@ -96,7 +109,8 @@ export interface WasmVaultFacts {
 /** The `code` of the `WalletError` every failing call throws. */
 export type WasmErrorCode =
   | 'WrongPassword' | 'EmptyPassword' | 'NotAVault' | 'UnsupportedVault'
-  | 'PassphraseTooLong' | 'InvalidPhrase' | 'NoPendingWallet' | 'NotUnlocked'
+  | 'PassphraseTooLong' | 'InvalidPhrase' | 'InvalidKey' | 'HoldsAKey' | 'HoldsAPhrase'
+  | 'NoPendingWallet' | 'NotUnlocked'
   | 'NoQuiz' | 'BackupNotConfirmed' | 'NoNewKey' | 'AccountIndexOutOfRange'
   | 'Unavailable' | 'BadArgument'
   // From signing (`decode_request`, `sign_request`, `solana_lookup_tables`).
@@ -217,6 +231,21 @@ impl WalletEngine {
         let text = secret(text);
         let passphrase = secret(passphrase);
         self.inner.start_import(&text, &passphrase).map_err(throw)
+    }
+
+    /// Starts a wallet from one private key the person pasted: 64 hexadecimal digits (with or
+    /// without `0x`), or a Solana secret key in base58 or as its list of 64 numbers. `InvalidKey`
+    /// for anything else (`check_key` says why). It is sealed and committed as an import is.
+    pub fn start_import_key(&mut self, text: String) -> Result<(), JsValue> {
+        let text = secret(text);
+        self.inner.start_import_key(&text).map_err(throw)
+    }
+
+    /// What the unlocked wallet (or, with none, the one being made) is: `phrase`,
+    /// `keySecp256k1` or `keyEd25519`. `NotUnlocked` when there is neither.
+    #[wasm_bindgen(unchecked_return_type = "WasmWalletKind")]
+    pub fn wallet_kind(&self) -> Result<String, JsValue> {
+        self.inner.wallet_kind().map(|kind| kind.code().to_owned()).map_err(throw)
     }
 
     /// Forgets the wallet being made or imported, wiping its phrase.
@@ -437,6 +466,27 @@ pub fn export_unlock_key(vault: &[u8], password: String) -> Result<Vec<u8>, JsVa
 #[wasm_bindgen]
 pub fn reveal_phrase(vault: &[u8], password: String) -> Result<Vec<String>, JsValue> {
     session::reveal_phrase_within(vault, &secret(password), OPEN_LIMITS).map_err(throw)
+}
+
+/// Reads pasted text as a private key and keeps nothing: what is wrong with it, or which kind
+/// of key it is.
+#[wasm_bindgen(unchecked_return_type = "WasmKeyCheck")]
+pub fn check_key(text: String) -> Result<JsValue, JsValue> {
+    let text = secret(text);
+    let found = session::check_key(&text);
+    to_js(&serde_json::json!({
+        "problem": found.problem.code(),
+        "kind": found.kind.map(session::WalletKind::code),
+    }))
+}
+
+/// The private key of a wallet that is one, as its owner would export it again, after the
+/// password is typed again. `HoldsAPhrase` for a wallet made of a recovery phrase.
+#[wasm_bindgen]
+pub fn reveal_key(vault: &[u8], password: String) -> Result<String, JsValue> {
+    session::reveal_key_within(vault, &secret(password), OPEN_LIMITS)
+        .map(|text| text.to_string())
+        .map_err(throw)
 }
 
 /// A new vault with the same phrase under a new password (and a new salt),

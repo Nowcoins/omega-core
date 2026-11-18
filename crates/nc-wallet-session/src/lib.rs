@@ -64,20 +64,21 @@ pub use error::SessionError;
 /// the most a vault's header may ask for when it is opened
 /// ([`Engine::with_vault_params_and_limits`]).
 pub use nc_wallet_core::vault::{VaultLimits, VaultParams};
-pub use phrase::{check_phrase, complete_word, suggest};
+pub use phrase::{check_key, check_phrase, complete_word, suggest};
 pub use signing::{
     AddressCheck, Decoded, MAX_ADDRESS_LEN, SigningError, solana_lookup_tables, validate_address,
 };
 pub use types::{
-    BackupQuestion, NetworkAccount, NetworkId, PhraseCheck, PhraseLength, PhraseProblem, VaultFacts,
+    BackupQuestion, KeyCheck, KeyProblem, NetworkAccount, NetworkId, PhraseCheck, PhraseLength,
+    PhraseProblem, VaultFacts, WalletKind,
 };
 pub use vault_ops::{
     change_password, change_password_keeping_key, change_password_keeping_key_within,
     export_unlock_key, export_unlock_key_within, open_throwaway, open_throwaway_within,
     open_with_key, open_with_key_within, open_with_password, open_with_password_keeping_key,
-    open_with_password_keeping_key_within, open_with_password_within, reveal_phrase,
-    reveal_phrase_within, throwaway_vault, throwaway_vault_with_params, vault_facts,
-    vault_facts_within,
+    open_with_password_keeping_key_within, open_with_password_within, reveal_key,
+    reveal_key_within, reveal_phrase, reveal_phrase_within, throwaway_vault,
+    throwaway_vault_with_params, vault_facts, vault_facts_within,
 };
 
 #[cfg(test)]

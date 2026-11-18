@@ -6,18 +6,84 @@
 
 use nc_wallet_core::cache::CacheMaster;
 use nc_wallet_core::vault::{self, VaultKey, VaultLimits, VaultParams};
-use nc_wallet_core::{Mnemonic, WordCount};
+use nc_wallet_core::{
+    Account, Error as CoreError, ImportedKey, ImportedKeyKind, Mnemonic, Network, Seed, SigningKey,
+    WordCount,
+};
 use zeroize::Zeroizing;
 
-use crate::accounts::accounts_of;
+use crate::accounts::{accounts_of, accounts_of_key};
 use crate::error::SessionError;
 use crate::quiz::{Quiz, make_quiz};
-use crate::types::{BackupQuestion, NetworkAccount, PhraseLength};
+use crate::types::{BackupQuestion, NetworkAccount, PhraseLength, WalletKind};
 
-/// A phrase and its BIP-39 passphrase. Both wipe themselves when dropped.
-pub(crate) struct Secrets {
-    pub(crate) mnemonic: Mnemonic,
-    pub(crate) passphrase: Zeroizing<String>,
+/// What a wallet is made of: a recovery phrase with its BIP-39 passphrase, or one imported
+/// private key. Either wipes itself when dropped.
+///
+/// A phrase reaches every network at every account number. A key is account 0 on the
+/// networks of its kind and nothing else: asked for another network or another number it
+/// answers [`CoreError::KeyDoesNotReach`], and it has no seed, no words and no Bitcoin.
+pub(crate) enum Secrets {
+    /// A recovery phrase and its passphrase.
+    Phrase {
+        /// The phrase.
+        mnemonic: Mnemonic,
+        /// The BIP-39 passphrase (`""` for none).
+        passphrase: Zeroizing<String>,
+    },
+    /// One imported private key.
+    Key(ImportedKey),
+}
+
+impl Secrets {
+    /// What kind of wallet this is.
+    pub(crate) const fn kind(&self) -> WalletKind {
+        match self {
+            Self::Phrase { .. } => WalletKind::Phrase,
+            Self::Key(key) => match key.kind() {
+                ImportedKeyKind::Secp256k1 => WalletKind::KeySecp256k1,
+                ImportedKeyKind::Ed25519 => WalletKind::KeyEd25519,
+            },
+        }
+    }
+
+    /// The phrase and its passphrase; [`SessionError::HoldsAKey`] for a key wallet.
+    pub(crate) fn phrase(&self) -> Result<(&Mnemonic, &str), SessionError> {
+        match self {
+            Self::Phrase { mnemonic, passphrase } => Ok((mnemonic, passphrase.as_str())),
+            Self::Key(_) => Err(SessionError::HoldsAKey),
+        }
+    }
+
+    /// The BIP-39 seed (Bitcoin's keys start from it). A key wallet has none.
+    pub(crate) fn seed(&self) -> Result<Seed, CoreError> {
+        match self {
+            Self::Phrase { mnemonic, passphrase } => Ok(mnemonic.to_seed(passphrase)),
+            Self::Key(_) => Err(CoreError::KeyDoesNotReach),
+        }
+    }
+
+    /// The address and public key of account `index` on `family`.
+    pub(crate) fn account(&self, family: Network, index: u32) -> Result<Account, CoreError> {
+        match self {
+            Self::Phrase { mnemonic, passphrase } => {
+                nc_wallet_core::derive(mnemonic, passphrase, family, index)
+            }
+            Self::Key(key) if index == 0 => key.account(family),
+            Self::Key(_) => Err(CoreError::KeyDoesNotReach),
+        }
+    }
+
+    /// The private key of account `index` on `family`, for one signature.
+    pub(crate) fn signing_key(&self, family: Network, index: u32) -> Result<SigningKey, CoreError> {
+        match self {
+            Self::Phrase { mnemonic, passphrase } => {
+                nc_wallet_core::signing_key(mnemonic, passphrase, family, index)
+            }
+            Self::Key(key) if index == 0 => key.signing_key(family),
+            Self::Key(_) => Err(CoreError::KeyDoesNotReach),
+        }
+    }
 }
 
 /// An unlocked wallet, made by [`crate::open_with_password`] or
@@ -73,13 +139,14 @@ impl std::fmt::Debug for SealDone {
 impl SealJob {
     /// Seals the wallet under `password`. Takes about a second: Argon2id.
     pub fn seal(self, password: &str) -> SealDone {
-        let secrets = &self.0.secrets;
-        let result = vault::seal_keeping_key_with_params(
-            &secrets.mnemonic,
-            &secrets.passphrase,
-            password,
-            self.1,
-        )
+        let result = match &self.0.secrets {
+            Secrets::Phrase { mnemonic, passphrase } => {
+                vault::seal_keeping_key_with_params(mnemonic, passphrase, password, self.1)
+            }
+            Secrets::Key(key) => {
+                vault::seal_imported_keeping_key_with_params(key, password, self.1)
+            }
+        }
         .map_err(SessionError::from);
         SealDone { pending: self.0, result }
     }
@@ -163,7 +230,7 @@ impl Engine {
         let mnemonic = Mnemonic::generate(count)?;
         self.sealed_key = None;
         self.pending = Some(Pending {
-            secrets: Secrets { mnemonic, passphrase: Zeroizing::new(String::new()) },
+            secrets: Secrets::Phrase { mnemonic, passphrase: Zeroizing::new(String::new()) },
             origin: Origin::Created,
             quiz: None,
         });
@@ -176,11 +243,36 @@ impl Engine {
         let mnemonic = Mnemonic::parse(text)?;
         self.sealed_key = None;
         self.pending = Some(Pending {
-            secrets: Secrets { mnemonic, passphrase: Zeroizing::new(passphrase.to_owned()) },
+            secrets: Secrets::Phrase {
+                mnemonic,
+                passphrase: Zeroizing::new(passphrase.to_owned()),
+            },
             origin: Origin::Imported,
             quiz: None,
         });
         Ok(())
+    }
+
+    /// Starts a wallet from one private key the person typed (see
+    /// [`nc_wallet_core::imported`] for what is read). Replaces any wallet being made. The
+    /// key is then sealed and unlocked as an imported phrase is: [`Engine::seal_pending`],
+    /// [`Engine::commit_pending`].
+    pub fn start_import_key(&mut self, text: &str) -> Result<(), SessionError> {
+        let key = ImportedKey::parse(text).map_err(|_| SessionError::InvalidKey)?;
+        self.sealed_key = None;
+        self.pending =
+            Some(Pending { secrets: Secrets::Key(key), origin: Origin::Imported, quiz: None });
+        Ok(())
+    }
+
+    /// What kind of wallet is unlocked, or (while none is) being made: a phrase, or a
+    /// private key of one kind or the other.
+    pub fn wallet_kind(&self) -> Result<WalletKind, SessionError> {
+        self.session
+            .as_ref()
+            .or_else(|| self.pending.as_ref().map(|pending| &pending.secrets))
+            .map(Secrets::kind)
+            .ok_or(SessionError::NotUnlocked)
     }
 
     /// Forgets the wallet being made or imported, wiping its phrase.
@@ -207,13 +299,13 @@ impl Engine {
     /// The words of the phrase being made, for the backup screen. This is the
     /// one place a new phrase leaves the engine.
     pub fn pending_words(&self) -> Result<Vec<String>, SessionError> {
-        Ok(words_of(&self.pending()?.secrets.mnemonic))
+        Ok(words_of(self.pending()?.secrets.phrase()?.0))
     }
 
     /// How many words the phrase being made has (12 or 24), for laying out the
     /// backup screen while the words are hidden.
     pub fn pending_word_count(&self) -> Result<u32, SessionError> {
-        Ok(to_u32(self.pending()?.secrets.mnemonic.word_count()))
+        Ok(to_u32(self.pending()?.secrets.phrase()?.0.word_count()))
     }
 
     /// Whether a wallet is being made or imported.
@@ -225,7 +317,7 @@ impl Engine {
     pub fn quiz(&mut self) -> Result<Vec<BackupQuestion>, SessionError> {
         let pending = self.pending.as_mut().ok_or(SessionError::NoPendingWallet)?;
         if pending.quiz.is_none() {
-            pending.quiz = Some(make_quiz(&words_of(&pending.secrets.mnemonic))?);
+            pending.quiz = Some(make_quiz(&words_of(pending.secrets.phrase()?.0))?);
         }
         let quiz = pending.quiz.as_ref().ok_or(SessionError::NoQuiz)?;
         Ok(quiz
@@ -249,7 +341,7 @@ impl Engine {
         let position = usize::try_from(position).map_err(|_| SessionError::NoQuiz)?;
         let slot =
             quiz.positions.iter().position(|p| *p == position).ok_or(SessionError::NoQuiz)?;
-        let words = words_of(&pending.secrets.mnemonic);
+        let words = words_of(pending.secrets.phrase()?.0);
         let right = words.get(position - 1).is_some_and(|w| w == word);
         if right {
             quiz.answered[slot] = true;
@@ -361,9 +453,16 @@ impl Engine {
 
     /// The accounts of all nine networks at account number `index`, derived
     /// from the unlocked wallet. Addresses and public keys only.
+    ///
+    /// A wallet that is one imported private key has account 0 alone, on the networks its
+    /// key reaches (Ethereum, BNB Chain, Polygon, Base and TRON; or Solana): the list is
+    /// then shorter than nine, and another number is [`SessionError::AccountIndexOutOfRange`].
     pub fn accounts(&self, index: u32) -> Result<Vec<NetworkAccount>, SessionError> {
-        let secrets = self.session.as_ref().ok_or(SessionError::NotUnlocked)?;
-        accounts_of(&secrets.mnemonic, &secrets.passphrase, index)
+        match self.session.as_ref().ok_or(SessionError::NotUnlocked)? {
+            Secrets::Phrase { mnemonic, passphrase } => accounts_of(mnemonic, passphrase, index),
+            Secrets::Key(key) if index == 0 => accounts_of_key(key),
+            Secrets::Key(_) => Err(SessionError::AccountIndexOutOfRange),
+        }
     }
 
     /// The Solana account Trust Wallet shows for this phrase (`m/44'/501'/0'`), for the wallet being
@@ -378,14 +477,19 @@ impl Engine {
             .as_ref()
             .or_else(|| self.pending.as_ref().map(|pending| &pending.secrets))
             .ok_or(SessionError::NotUnlocked)?;
-        crate::accounts::trust_wallet_solana_account(&secrets.mnemonic, &secrets.passphrase)
+        let (mnemonic, passphrase) = secrets.phrase()?;
+        crate::accounts::trust_wallet_solana_account(mnemonic, passphrase)
     }
 
     fn cache_master(&mut self) -> Result<&CacheMaster, SessionError> {
         if self.cache_master.is_none() {
-            let secrets = self.session.as_ref().ok_or(SessionError::NotUnlocked)?;
-            let seed = secrets.mnemonic.to_seed(&secrets.passphrase);
-            self.cache_master = Some(CacheMaster::from_seed(&seed));
+            let master = match self.session.as_ref().ok_or(SessionError::NotUnlocked)? {
+                Secrets::Phrase { mnemonic, passphrase } => {
+                    CacheMaster::from_seed(&mnemonic.to_seed(passphrase))
+                }
+                Secrets::Key(key) => CacheMaster::from_imported(key),
+            };
+            self.cache_master = Some(master);
         }
         self.cache_master.as_ref().ok_or(SessionError::NotUnlocked)
     }

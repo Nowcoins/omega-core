@@ -469,7 +469,7 @@ fn bitcoin_send(
     // and for the change, which of its addresses they are, and the keys are derived here; the
     // addresses the request writes are only checked against them.
     let account = index;
-    let seed = secrets.mnemonic.to_seed(&secrets.passphrase);
+    let seed = secrets.seed()?;
     let receive = bitcoin::account(&seed, account, Chain::Receive, 0)?;
     send.check_inputs_address(&receive.address)?;
 
@@ -581,7 +581,7 @@ pub(super) fn sign_bitcoin(
     prepared: &Prepared,
     plan: &Plan,
 ) -> Result<Value, SigningError> {
-    let seed = secrets.mnemonic.to_seed(&secrets.passphrase);
+    let seed = secrets.seed()?;
     let signed = plan.sign(&seed, index)?;
     Ok(send_output(&prepared.network, &signed.raw_hex(), "hex", &signed.txid_hex()))
 }

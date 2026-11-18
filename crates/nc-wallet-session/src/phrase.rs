@@ -98,3 +98,31 @@ pub(crate) fn distance(a: &[char], b: &str) -> usize {
     }
     rows[a.len()][b.len()]
 }
+
+/// Reads pasted text as a private key, without keeping anything: what is wrong with it, or
+/// which kind of key it is (see [`nc_wallet_core::imported`] for the forms that are read).
+#[must_use]
+pub fn check_key(text: &str) -> crate::types::KeyCheck {
+    use nc_wallet_core::{ImportedKey, ImportedKeyError, ImportedKeyKind};
+
+    use crate::types::{KeyCheck, KeyProblem, WalletKind};
+    match ImportedKey::parse(text) {
+        Ok(key) => KeyCheck {
+            problem: KeyProblem::Valid,
+            kind: Some(match key.kind() {
+                ImportedKeyKind::Secp256k1 => WalletKind::KeySecp256k1,
+                ImportedKeyKind::Ed25519 => WalletKind::KeyEd25519,
+            }),
+        },
+        Err(error) => KeyCheck {
+            problem: match error {
+                ImportedKeyError::Empty => KeyProblem::Empty,
+                ImportedKeyError::Unrecognised => KeyProblem::Unrecognised,
+                ImportedKeyError::LooksLikeAnAddress => KeyProblem::LooksLikeAnAddress,
+                ImportedKeyError::NotOnCurve => KeyProblem::NotOnCurve,
+                ImportedKeyError::HalvesDisagree => KeyProblem::HalvesDisagree,
+            },
+            kind: None,
+        },
+    }
+}

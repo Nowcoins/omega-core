@@ -403,3 +403,23 @@ fn a_hash_written_out_in_hex_with_or_without_0x_is_hash_like() {
         assert_eq!(s["warnings"], json!([]), "{text}");
     }
 }
+
+// ---- a wallet that is one imported private key ----
+
+#[test]
+fn an_imported_tron_key_signs_exactly_what_the_phrase_signs() {
+    let phrase = engine();
+    let imported = key_engine(&exported_key(Network::Tron));
+    for tx in [transfer(1_500_000), approve(&U256::from_u128(25_000_000), 30_000_000)] {
+        let request = request(&tx);
+        let theirs = decode(&phrase, 0, &request).unwrap();
+        let ours = decode(&imported, 0, &request).unwrap();
+        assert_eq!(ours.summary, theirs.summary);
+        assert_eq!(ours.summary["signer"], address(0));
+        assert_eq!(sign(&imported, 0, &request), sign(&phrase, 0, &request));
+    }
+    // The same key imported from an Ethereum wallet is another TRON account than the phrase's:
+    // a transaction the phrase's account owns is not its to sign.
+    let from_evm = key_engine(&exported_key(Network::Evm));
+    assert!(decode(&from_evm, 0, &request(&transfer(1))).is_err());
+}

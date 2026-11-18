@@ -22,6 +22,13 @@ pub enum SessionError {
     PassphraseTooLong,
     /// The typed recovery phrase is not valid. `check_phrase` says why.
     InvalidPhrase,
+    /// The typed private key is not one the wallet can read. `check_key` says why.
+    InvalidKey,
+    /// The wallet is one imported private key: it has no recovery phrase to show, check
+    /// or derive from.
+    HoldsAKey,
+    /// The wallet is a recovery phrase: it has no single private key to show.
+    HoldsAPhrase,
     /// There is no wallet being made or imported.
     NoPendingWallet,
     /// The wallet is locked.
@@ -51,6 +58,9 @@ impl SessionError {
             Self::UnsupportedVault => "UnsupportedVault",
             Self::PassphraseTooLong => "PassphraseTooLong",
             Self::InvalidPhrase => "InvalidPhrase",
+            Self::InvalidKey => "InvalidKey",
+            Self::HoldsAKey => "HoldsAKey",
+            Self::HoldsAPhrase => "HoldsAPhrase",
             Self::NoPendingWallet => "NoPendingWallet",
             Self::NotUnlocked => "NotUnlocked",
             Self::NoQuiz => "NoQuiz",
@@ -71,6 +81,9 @@ impl fmt::Display for SessionError {
             Self::UnsupportedVault => "this vault was made by a newer version of the app",
             Self::PassphraseTooLong => "the passphrase is too long",
             Self::InvalidPhrase => "the recovery phrase is not valid",
+            Self::InvalidKey => "the private key is not valid",
+            Self::HoldsAKey => "this wallet is a private key, not a recovery phrase",
+            Self::HoldsAPhrase => "this wallet is a recovery phrase, not a private key",
             Self::NoPendingWallet => "no wallet is being made",
             Self::NotUnlocked => "the wallet is locked",
             Self::NoQuiz => "the backup check was not asked",
@@ -101,6 +114,7 @@ impl From<VaultError> for SessionError {
             }
             // Parameters outside what a vault may ask for: not one of ours.
             VaultError::NotAVault | VaultError::BadParams => Self::NotAVault,
+            VaultError::HoldsAKey => Self::HoldsAKey,
             VaultError::Kdf | VaultError::Randomness => Self::Unavailable,
         }
     }
@@ -117,6 +131,7 @@ impl From<CoreError> for SessionError {
         match error {
             CoreError::Mnemonic(_) => Self::InvalidPhrase,
             CoreError::IndexOutOfRange(_) => Self::AccountIndexOutOfRange,
+            CoreError::KeyDoesNotReach => Self::HoldsAKey,
             _ => Self::Unavailable,
         }
     }

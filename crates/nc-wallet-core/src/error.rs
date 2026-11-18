@@ -60,4 +60,8 @@ pub enum Error {
     /// BIP-39 seed, so a seed alone is not enough (Bittensor).
     #[error("this network needs the recovery phrase itself, not only its seed")]
     NeedsPhrase,
+
+    /// The wallet is one imported private key, and the network asked for is not of its kind.
+    #[error("this wallet's private key is not an account on that network")]
+    KeyDoesNotReach,
 }

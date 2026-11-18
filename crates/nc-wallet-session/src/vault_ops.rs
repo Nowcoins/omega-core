@@ -6,13 +6,24 @@
 //! limits instead (the extension's [`VaultLimits::EXTENSION`]), and refuses a
 //! vault that asks for more as [`SessionError::NotAVault`] before any work.
 
-use nc_wallet_core::vault::{self, VaultKey, VaultLimits, VaultParams};
+use nc_wallet_core::vault::{self, Held, VaultKey, VaultLimits, VaultParams};
 use nc_wallet_core::{Mnemonic, WordCount};
 use zeroize::Zeroizing;
 
 use crate::engine::{Secrets, Unlocked, words_of};
 use crate::error::SessionError;
 use crate::types::VaultFacts;
+
+/// What a vault held, as the engine keeps it.
+fn secrets_of(held: Held) -> Secrets {
+    match held {
+        Held::Phrase(opened) => {
+            let (mnemonic, passphrase) = opened.into_parts();
+            Secrets::Phrase { mnemonic, passphrase }
+        }
+        Held::Key(key) => Secrets::Key(key),
+    }
+}
 
 /// Opens the vault with the password. Takes about a second: Argon2id.
 pub fn open_with_password(
@@ -28,8 +39,7 @@ pub fn open_with_password_within(
     password: &Zeroizing<String>,
     limits: VaultLimits,
 ) -> Result<Unlocked, SessionError> {
-    let (mnemonic, passphrase) = vault::open_within(blob, password, limits)?.into_parts();
-    Ok(Unlocked(Secrets { mnemonic, passphrase }))
+    Ok(Unlocked(secrets_of(vault::open_any_within(blob, password, limits)?)))
 }
 
 /// Opens the vault with the password and also returns the 32-byte vault key
@@ -51,8 +61,8 @@ pub fn open_with_password_keeping_key_within(
     limits: VaultLimits,
 ) -> Result<(Unlocked, Vec<u8>), SessionError> {
     let key = vault::derive_key_within(blob, password, limits)?;
-    let (mnemonic, passphrase) = vault::open_with_key_within(blob, &key, limits)?.into_parts();
-    Ok((Unlocked(Secrets { mnemonic, passphrase }), key.expose_secret().to_vec()))
+    let held = vault::open_any_with_key_within(blob, &key, limits)?;
+    Ok((Unlocked(secrets_of(held)), key.expose_secret().to_vec()))
 }
 
 /// Opens the vault with the key [`export_unlock_key`] (or
@@ -68,8 +78,7 @@ pub fn open_with_key_within(
     limits: VaultLimits,
 ) -> Result<Unlocked, SessionError> {
     let key = VaultKey::from_bytes(key)?;
-    let (mnemonic, passphrase) = vault::open_with_key_within(blob, &key, limits)?.into_parts();
-    Ok(Unlocked(Secrets { mnemonic, passphrase }))
+    Ok(Unlocked(secrets_of(vault::open_any_with_key_within(blob, &key, limits)?)))
 }
 
 /// The vault's key, after checking the password: 32 bytes that open this one
@@ -89,7 +98,7 @@ pub fn export_unlock_key_within(
 ) -> Result<Vec<u8>, SessionError> {
     let key = vault::derive_key_within(blob, password, limits)?;
     // A wrong password gives a key that opens nothing: check before it is kept.
-    vault::open_with_key_within(blob, &key, limits)?;
+    vault::open_any_with_key_within(blob, &key, limits)?;
     Ok(key.expose_secret().to_vec())
 }
 
@@ -112,6 +121,28 @@ pub fn reveal_phrase_within(
     Ok(words_of(opened.mnemonic()))
 }
 
+/// The stored private key of a wallet that is one, as its owner would export it again (64
+/// hexadecimal digits, or Solana's base58), after the password is typed again. Nothing is
+/// unlocked or locked by this. A phrase wallet answers [`SessionError::HoldsAPhrase`].
+pub fn reveal_key(
+    blob: &[u8],
+    password: &Zeroizing<String>,
+) -> Result<Zeroizing<String>, SessionError> {
+    reveal_key_within(blob, password, VaultLimits::PHONE)
+}
+
+/// [`reveal_key`] within `limits`.
+pub fn reveal_key_within(
+    blob: &[u8],
+    password: &Zeroizing<String>,
+    limits: VaultLimits,
+) -> Result<Zeroizing<String>, SessionError> {
+    match vault::open_any_within(blob, password, limits)? {
+        Held::Key(key) => Ok(key.expose_text()),
+        Held::Phrase(_) => Err(SessionError::HoldsAPhrase),
+    }
+}
+
 /// A new vault with the same phrase under a new password (and a new salt).
 /// The old vault stays valid until the app replaces it.
 pub fn change_password(
@@ -119,8 +150,12 @@ pub fn change_password(
     old: &Zeroizing<String>,
     new: &Zeroizing<String>,
 ) -> Result<Vec<u8>, SessionError> {
-    let opened = vault::open(blob, old)?;
-    Ok(vault::seal(opened.mnemonic(), opened.expose_passphrase(), new)?)
+    Ok(match vault::open_any(blob, old)? {
+        Held::Phrase(opened) => vault::seal(opened.mnemonic(), opened.expose_passphrase(), new)?,
+        Held::Key(key) => {
+            vault::seal_imported_keeping_key_with_params(&key, new, VaultParams::PHONE)?.0
+        }
+    })
 }
 
 /// [`change_password`] sealing with `params` (the old vault is opened with the
@@ -146,13 +181,17 @@ pub fn change_password_keeping_key_within(
     params: VaultParams,
     limits: VaultLimits,
 ) -> Result<(Vec<u8>, Vec<u8>), SessionError> {
-    let opened = vault::open_within(blob, old, limits)?;
-    let (renewed, key) = vault::seal_keeping_key_with_params(
-        opened.mnemonic(),
-        opened.expose_passphrase(),
-        new,
-        params,
-    )?;
+    let (renewed, key) = match vault::open_any_within(blob, old, limits)? {
+        Held::Phrase(opened) => vault::seal_keeping_key_with_params(
+            opened.mnemonic(),
+            opened.expose_passphrase(),
+            new,
+            params,
+        )?,
+        Held::Key(imported) => {
+            vault::seal_imported_keeping_key_with_params(&imported, new, params)?
+        }
+    };
     Ok((renewed, key.expose_secret().to_vec()))
 }
 

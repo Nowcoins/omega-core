@@ -673,6 +673,107 @@ fn nothing_secret_is_printed() {
     }
 }
 
+// ---- a wallet that is one imported private key ------------------------------------------------
+
+fn cheap_key_blob(imported: &ImportedKey, password: &str) -> Vec<u8> {
+    seal_plaintext(
+        &encode_key_payload(imported),
+        password,
+        cheap(),
+        [7u8; SALT_LEN],
+        [9u8; NONCE_LEN],
+    )
+    .unwrap()
+    .0
+}
+
+/// The key of a vault that was sealed with one.
+fn key_of(held: Held) -> ImportedKey {
+    match held {
+        Held::Key(key) => Some(key),
+        Held::Phrase(_) => None,
+    }
+    .expect("a key was sealed")
+}
+
+/// The phrase of a vault that was sealed with one.
+fn phrase_of(held: Held) -> Opened {
+    match held {
+        Held::Phrase(opened) => Some(opened),
+        Held::Key(_) => None,
+    }
+    .expect("a phrase was sealed")
+}
+
+#[test]
+fn an_imported_key_survives_the_vault_whatever_its_kind() {
+    let secp = ImportedKey::parse(&"11".repeat(32)).unwrap();
+    let seed = [0x42u8; 32];
+    let ed = ImportedKey::from_parts(ImportedKeyKind::Ed25519, &seed).unwrap();
+    for imported in [secp, ed] {
+        let blob = cheap_key_blob(&imported, PASSWORD);
+        let back = key_of(open_any(&blob, PASSWORD).unwrap());
+        assert_eq!(back.kind(), imported.kind());
+        assert_eq!(back.expose_secret(), imported.expose_secret());
+        // The key that opens a vault without the password opens this one too.
+        let key = derive_key(&blob, PASSWORD).unwrap();
+        assert!(matches!(open_any_with_key(&blob, &key).unwrap(), Held::Key(_)));
+        // Asked for a phrase, it says what it holds, and a wrong password is a wrong password.
+        assert_eq!(open(&blob, PASSWORD).unwrap_err(), VaultError::HoldsAKey);
+        assert_eq!(open_with_key(&blob, &key).unwrap_err(), VaultError::HoldsAKey);
+        assert_eq!(open_any(&blob, "another password").unwrap_err(), VaultError::Authentication);
+    }
+}
+
+#[test]
+fn a_key_vault_looks_like_a_phrase_vault_from_outside() {
+    let imported = ImportedKey::parse(&"11".repeat(32)).unwrap();
+    let key_blob = cheap_key_blob(&imported, PASSWORD);
+    let phrase_blob = cheap_blob(ABANDON_12, "", PASSWORD);
+    assert_eq!(key_blob.len(), phrase_blob.len());
+    assert_eq!(info(&key_blob).unwrap(), info(&phrase_blob).unwrap());
+    // And a phrase vault read with the door that reads either is the phrase.
+    let opened = phrase_of(open_any(&phrase_blob, PASSWORD).unwrap());
+    assert_eq!(*opened.mnemonic().expose_phrase(), ABANDON_12);
+}
+
+#[test]
+fn the_real_seal_of_a_key_keeps_the_floor_and_gives_its_vault_key() {
+    let imported = ImportedKey::parse(&"11".repeat(32)).unwrap();
+    assert_eq!(
+        seal_imported_keeping_key_with_params(&imported, PASSWORD, cheap()).unwrap_err(),
+        VaultError::BadParams
+    );
+    let (blob, key) =
+        seal_imported_keeping_key_with_params(&imported, PASSWORD, VaultParams::EXTENSION).unwrap();
+    let back = key_of(open_any_with_key_within(&blob, &key, VaultLimits::EXTENSION).unwrap());
+    assert_eq!(back.expose_secret(), imported.expose_secret());
+    assert_eq!(
+        seal_imported_keeping_key_with_params(&imported, "", VaultParams::EXTENSION).unwrap_err(),
+        VaultError::EmptyPassword
+    );
+}
+
+#[test]
+fn a_damaged_key_payload_is_refused() {
+    let imported = ImportedKey::parse(&"11".repeat(32)).unwrap();
+    let good = encode_key_payload(&imported);
+    assert!(decode_key_payload(&good).is_ok());
+    // An unknown kind, a byte after the key, a scalar that is no key, a payload of another length.
+    let mut unknown = good.to_vec();
+    unknown[1] = 9;
+    let mut trailing = good.to_vec();
+    trailing[40] = 1;
+    let mut zero = good.to_vec();
+    zero[2..34].fill(0);
+    for bad in [unknown, trailing, zero, good[..PAD_TO - 1].to_vec()] {
+        assert_eq!(decode_key_payload(&bad).unwrap_err(), VaultError::Corrupt);
+    }
+    // Nothing of a held key is printed.
+    let held = Held::Key(imported);
+    assert!(!format!("{held:?}").contains("11"));
+}
+
 /// `cargo test -p nc-wallet-core --release vault::tests::unlock_time -- --ignored --nocapture`
 /// prints how long one unlock takes at the phone setting on this machine.
 #[test]

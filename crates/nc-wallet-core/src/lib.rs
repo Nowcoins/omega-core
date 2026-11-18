@@ -115,6 +115,7 @@ pub mod bitcoin;
 pub mod bittensor;
 pub mod cache;
 pub mod evm;
+pub mod imported;
 pub mod limits;
 pub mod solana;
 pub mod stellar;
@@ -134,6 +135,7 @@ mod tx_error;
 
 pub use ecdsa::RecoverableSignature;
 pub use error::{Error, MnemonicError};
+pub use imported::{ImportedKey, ImportedKeyError, ImportedKeyKind};
 pub use key::{Account, KeyScheme, SigningKey};
 pub use mnemonic::{Mnemonic, Seed, WordCount};
 pub use network::Network;

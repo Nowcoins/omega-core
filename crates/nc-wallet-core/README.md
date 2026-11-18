@@ -1,8 +1,9 @@
 # nc-wallet-core
 
 The signing core of **Nowcoin Omega**, the self-custody wallet (Android app and Chrome
-extension): recovery phrases, key derivation and addresses; transaction building and
-signing; and the vault that keeps the phrase under a password.
+extension): recovery phrases, key derivation and addresses; a wallet from one imported
+private key; transaction building and signing; and the vault that keeps the phrase, or
+the key, under a password.
 
 This is the most security-critical code in the product. A wrong derivation means a user
 cannot restore their wallet elsewhere; a leaked secret means stolen coins.
@@ -92,10 +93,32 @@ Bitcoin inputs other than P2WPKH (legacy, Taproot), bumping a stuck payment (the
 signals replace-by-fee; building the replacement is not here), and decoding a TRON `raw_data`
 handed in by a dApp.
 
+## A wallet from one private key
+
+`ImportedKey::parse` (`src/imported.rs`) reads the text a person pasted. Two kinds are read: a
+**secp256k1** key as 64 hexadecimal digits, with or without `0x` (what MetaMask, Trust Wallet and
+TronLink export), which is the account on Ethereum, BNB Chain, Polygon and Base and, written
+TRON's way, on TRON; and an **ed25519** key for Solana, as the base58 of the 64-byte secret key
+(what Phantom and Solflare export) or as the list of 64 numbers Solana's own tools write. The
+public half of a Solana secret is checked against its seed, so a mistyped key is refused
+(`HalvesDisagree`), never opened as another account.
+
+What is not a key is told apart from one: 40 hexadecimal digits, a `T…` or `bc1…` text, and a
+25- or 32-byte base58 are **addresses** (`LooksLikeAnAddress`), the commonest thing pasted by
+mistake; a 32-byte base58 is never taken for a seed. There is no Bitcoin here (a key in WIF may
+hold coins at address types this wallet does not read), no Stellar and no Bittensor: those are
+reached with a phrase, and `ImportedKey::account` answers `KeyDoesNotReach` for them.
+
+The key is wiped when the value is dropped, prints nothing under `Debug`, is not `Clone`, and is
+read through `expose_secret` and `expose_text` (the form it would be exported in again).
+
 ## The vault
 
-`vault::seal` puts a phrase (and its optional BIP-39 passphrase) under a password; `vault::open`
-takes it out. Argon2id (version 1.3; `VaultParams::PHONE` is 64 MiB, 3 passes, 1 lane, a random
+`vault::seal` puts a phrase (and its optional BIP-39 passphrase) under a password, and
+`vault::seal_imported_keeping_key_with_params` one imported private key (payload version 2: the
+kind and the 32 bytes, padded as a phrase is, so the two cannot be told apart from outside).
+`vault::open` takes a phrase out and answers `HoldsAKey` for a vault of a key; `vault::open_any`
+takes out whichever the vault holds (`Held`). Argon2id (version 1.3; `VaultParams::PHONE` is 64 MiB, 3 passes, 1 lane, a random
 16-byte salt) makes a 256-bit key from the NFKD-normalised password; AES-256-GCM with a random
 96-bit nonce seals a payload padded to a multiple of 256 bytes, so a 12-word and a 24-word phrase
 make blobs of the same length. The whole 47-byte header (magic `NCWV`, format 1, KDF and cipher

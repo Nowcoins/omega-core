@@ -35,6 +35,12 @@ pub enum WalletError {
     /// The system's secure random source failed, or the phone has no memory
     /// to spare for the key derivation. Nothing was changed.
     Unavailable,
+    /// The pasted private key is not one the wallet reads. `check_key` says why.
+    InvalidKey,
+    /// The wallet is one private key and has no recovery phrase to show.
+    HoldsAKey,
+    /// The wallet is a recovery phrase and has no single private key to show.
+    HoldsAPhrase,
 }
 
 impl fmt::Display for WalletError {
@@ -53,6 +59,9 @@ impl fmt::Display for WalletError {
             Self::NoNewKey => "there is no new unlock key",
             Self::AccountIndexOutOfRange => "the account number is out of range",
             Self::Unavailable => "the secure random source or memory is unavailable",
+            Self::InvalidKey => "the private key is not valid",
+            Self::HoldsAKey => "this wallet is one private key and has no recovery phrase",
+            Self::HoldsAPhrase => "this wallet is a recovery phrase and has no single private key",
         })
     }
 }
